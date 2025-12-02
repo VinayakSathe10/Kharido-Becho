@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getAllLaptops } from "../store/services/laptopServices"; // adjust path if needed
+import { getAllLaptops } from "../../store/services/laptopServices"; // adjust path if needed
  
 export default function BuyLaptops() {
   const [laptops, setLaptops] = useState([]);

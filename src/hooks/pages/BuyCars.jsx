@@ -92,7 +92,7 @@
 // }
 
 import React, { useEffect, useState } from "react";
-import { getAllCars } from "../store/services/carServices";
+import { getAllCars } from "../../store/services/carServices";
 
 export default function BuyCars() {
   const [cars, setCars] = useState([]);

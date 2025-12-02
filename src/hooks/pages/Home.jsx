@@ -1,7 +1,7 @@
 // src/pages/Home.jsx
 import React from "react";
 import { Link } from "react-router-dom";
-import RecommendationGrid from "../components/RecommendationGrid";
+import RecommendationGrid from "../../components/RecommendationGrid";
 
 export default function Home() {
   return (
@@ -10,7 +10,10 @@ export default function Home() {
       <section className="relative bg-gray-900 h-[80vh] flex items-center justify-center overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center opacity-60"
-          style={{ backgroundImage: "url('/images/hero-vehicles-electronics.jpg')" }}
+          style={{
+            backgroundImage:
+              "url('/images/hero-vehicles-electronics.jpg')",
+          }}
         />
         <div className="relative z-10 text-center px-4">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white drop-shadow-lg mb-4 animate-fadeIn">
@@ -35,9 +38,10 @@ export default function Home() {
           </div>
         </div>
       </section>
-<RecommendationGrid/>
 
-   
+      {/* Fresh recommendations (now powered by live bikes) */}
+      <RecommendationGrid />
     </div>
   );
 }
+

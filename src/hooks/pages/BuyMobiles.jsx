@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getAllMobiles } from "../store/services/mobileServices";
+import { getAllMobiles } from "../../store/services/mobileServices";
 
 export default function BuyMobiles() {
   const [mobiles, setMobiles] = useState([]);

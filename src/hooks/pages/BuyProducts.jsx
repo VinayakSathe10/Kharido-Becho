@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import ProductCard from '../components/ ProductCard';
-import FilterSidebar from '../components/FilterSidebar';
+import ProductCard from '../../components/ProductCard';
+// import FilterSidebar from '../../components/FilterSidebar';
 
 export default function BuyProducts() {
   const [category, setCategory] = useState('electronics');
