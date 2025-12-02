@@ -38,11 +38,22 @@ export const deleteBikeImage = async (imageId) => {
   return response.data;
 };
 
-export const getBikesBySeller = async (sellerId) => {
+/**
+ * Get bikes for a seller filtered by status.
+ * Backend endpoint pattern already used for ACTIVE, we reuse it for other statuses.
+ */
+export const getBikesByStatus = async (sellerId, status) => {
   const res = await apiClient.get(
-    `/bikes/seller/${sellerId}/status/ACTIVE/page/0/size/50`
+    `/bikes/seller/${sellerId}/status/${status}/page/0/size/50`
   );
   return res.data?.content || [];
+};
+
+/**
+ * Backwards‑compatible helper – keeps existing behaviour (ACTIVE only).
+ */
+export const getBikesBySeller = async (sellerId) => {
+  return getBikesByStatus(sellerId, "ACTIVE");
 };
 
 // GET BIKE BY ID
@@ -63,8 +74,13 @@ export const deleteBike = async (bikeId) => {
   return res.data;
 };
 
-// GET ALL BIKES (for buyers)
+// GET ALL BIKES (for buyers) – show only ACTIVE bikes on client side
 export const getAllBikes = async () => {
   const res = await apiClient.get("/bikes/get");
-  return Array.isArray(res.data) ? res.data : [];
+  const list = Array.isArray(res.data) ? res.data : [];
+  return list.filter(
+    (bike) =>
+      (bike.status || "").toString().toUpperCase() === "ACTIVE"
+  );
 };
+
