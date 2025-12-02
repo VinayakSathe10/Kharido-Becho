@@ -1,10 +1,10 @@
 import { useMemo, useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 
-import SellBikeForm from "../components/SellBikeForm";
-import SellCarForm from "../components/SellCarForm";
-import SellLaptopForm from "../components/SellLaptopForm";
-import SellMobileForm from "../components/SellMobileForm";
+import SellBikeForm from "../../components/SellBikeForm";
+import SellCarForm from "../../components/SellCarForm";
+import SellLaptopForm from "../../components/SellLaptopForm";
+import SellMobileForm from "../../components/SellMobileForm";
 
 export default function SellProducts({ initialTab }) {
   const { id } = useParams();

@@ -1,0 +1,1439 @@
+import React, { useEffect, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+
+// Shared components
+import DashboardStats from "../../components/DashboardStats";
+
+// SERVICES
+import {
+  getLaptopsByStatus,
+  deleteLaptop,
+} from "../../store/services/laptopServices";
+
+import {
+  getBikesBySeller,
+  deleteBike,
+} from "../../store/services/bikeServices";
+
+import { getCarsBySeller, deleteCar } from "../../store/services/carServices";
+
+import {
+  getMobilesBySeller,
+  deleteMobile,
+} from "../../store/services/mobileServices";
+
+const STATUS_FILTERS = ["ACTIVE", "PENDING", "SOLD"];
+
+export default function Dashboard() {
+  const navigate = useNavigate();
+  const sellerId = Number(localStorage.getItem("sellerId"));
+
+  const [activeCategory, setActiveCategory] = useState("LAPTOPS");
+
+  const [laptops, setLaptops] = useState([]);
+  const [bikes, setBikes] = useState([]);
+  const [cars, setCars] = useState([]);
+  const [mobiles, setMobiles] = useState([]);
+
+  const [loading, setLoading] = useState(false);
+
+  /** FETCH LAPTOP */
+  const fetchLaptops = useCallback(async () => {
+    try {
+      setLoading(true);
+
+      const results = await Promise.allSettled(
+        STATUS_FILTERS.map((status) =>
+          getLaptopsByStatus(sellerId, status).then((data) => ({
+            status,
+            data: Array.isArray(data) ? data : [],
+          }))
+        )
+      );
+
+      const merged = results.flatMap((res, idx) => {
+        if (res.status !== "fulfilled") return [];
+        return res.value.data.map((item) => ({
+          ...item,
+          status: item.status || STATUS_FILTERS[idx],
+        }));
+      });
+
+      setLaptops(merged);
+    } catch {
+      toast.error("Failed to load laptops");
+    } finally {
+      setLoading(false);
+    }
+  }, [sellerId]);
+
+  /** FETCH EVERYTHING ON CATEGORY CHANGE */
+  useEffect(() => {
+    if (!sellerId) return;
+
+    const load = async () => {
+      setLoading(true);
+      try {
+        if (activeCategory === "LAPTOPS") await fetchLaptops();
+
+        if (activeCategory === "BIKES") {
+          const data = await getBikesBySeller(sellerId);
+          setBikes(Array.isArray(data) ? data : []);
+        }
+
+        if (activeCategory === "CARS") {
+          const data = await getCarsBySeller(sellerId);
+          setCars(Array.isArray(data) ? data : []);
+        }
+
+        if (activeCategory === "MOBILES") {
+          const data = await getMobilesBySeller(sellerId);
+          setMobiles(Array.isArray(data) ? data : []);
+        }
+      } catch {
+        toast.error("Load failed");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    load();
+  }, [activeCategory, sellerId, fetchLaptops]);
+
+  /** DELETE HANDLERS */
+
+  const handleDeleteLaptop = async (item) => {
+    const id = item.laptopId ?? item.id ?? item.laptop_id;
+
+    if (!id) return toast.error("Laptop ID missing");
+    if (!window.confirm("Delete this laptop?")) return;
+
+    try {
+      await deleteLaptop(id);
+      setLaptops((l) =>
+        l.filter((x) => (x.laptopId ?? x.id ?? x.laptop_id) !== id)
+      );
+      toast.success("Laptop deleted");
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Delete failed");
+    }
+  };
+
+  const handleDeleteBike = async (idOrObj) => {
+    const id =
+      typeof idOrObj === "number"
+        ? idOrObj
+        : idOrObj.bike_id ?? idOrObj.id ?? idOrObj.bikeId;
+
+    if (!id) return toast.error("Bike ID missing");
+    if (!window.confirm("Delete this bike?")) return;
+
+    try {
+      await deleteBike(id);
+      setBikes((l) => l.filter((x) => (x.bike_id ?? x.id ?? x.bikeId) !== id));
+      toast.success("Bike deleted");
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Bike delete failed");
+    }
+  };
+
+  const handleDeleteCar = async (idOrObj) => {
+    const id =
+      typeof idOrObj === "number"
+        ? idOrObj
+        : idOrObj.carId ?? idOrObj.id ?? idOrObj.car_id;
+
+    if (!id) return toast.error("Car ID missing");
+    if (!window.confirm("Delete this car?")) return;
+
+    try {
+      await deleteCar(id);
+      setCars((l) => l.filter((x) => (x.carId ?? x.id ?? x.car_id) !== id));
+      toast.success("Car deleted");
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Car delete failed");
+    }
+  };
+
+  const handleDeleteMobile = async (idOrObj) => {
+    const id =
+      typeof idOrObj === "number"
+        ? idOrObj
+        : idOrObj.mobileId ?? idOrObj.id ?? idOrObj.mobile_id;
+
+    if (!id) return toast.error("Mobile ID missing");
+    if (!window.confirm("Delete this mobile?")) return;
+
+    try {
+      await deleteMobile(id);
+      setMobiles((l) =>
+        l.filter((x) => (x.mobileId ?? x.id ?? x.mobile_id) !== id)
+      );
+      toast.success("Mobile deleted");
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Mobile delete failed");
+    }
+  };
+
+  /** EDIT ROUTERS — PAGE BASED (Navigate to respective form pages) */
+
+  const goToEditLaptop = (item) => {
+    const id = item.laptopId ?? item.id ?? item.laptop_id;
+    if (!id) return toast.error("Laptop ID missing");
+
+    navigate(`/sell-laptop/${id}`, { state: { mode: "edit", item } });
+  };
+
+  const goToEditBike = (item) => {
+    const id = item.bike_id ?? item.id ?? item.bikeId;
+    if (!id) return toast.error("Bike ID missing");
+
+    navigate(`/sell-bike/${id}`, { state: { mode: "edit", item } });
+  };
+
+  const goToEditCar = (item) => {
+    const id = item.carId ?? item.id ?? item.car_id;
+    if (!id) return toast.error("Car ID missing");
+
+    navigate(`/sell-car/${id}`, { state: { mode: "edit", item } });
+  };
+
+  const goToEditMobile = (item) => {
+    const id = item.mobileId ?? item.id ?? item.mobile_id;
+    if (!id) return toast.error("Mobile ID missing");
+
+    navigate(`/sell-mobile/${id}`, { state: { mode: "edit", item } });
+  };
+
+  /** UI  */
+  return (
+    <div className="container mx-auto px-4 py-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Dashboard</h1>
+        <button
+          onClick={() => navigate("/sellfrom")}
+          className="px-5 py-2 bg-green-600 text-white rounded-md"
+        >
+          + Sell Product
+        </button>
+      </div>
+
+      {/* Status summary cards for current category */}
+      <div className="mb-6">
+        <DashboardStats
+          listings={
+            activeCategory === "BIKES"
+              ? bikes
+              : activeCategory === "LAPTOPS"
+              ? laptops
+              : activeCategory === "CARS"
+              ? cars
+              : mobiles
+          }
+        />
+      </div>
+
+      {/* TABS */}
+      <div className="flex gap-3 mb-6">
+        {["LAPTOPS", "BIKES", "CARS", "MOBILES"].map((cat) => (
+          <button
+            key={cat}
+            onClick={() => setActiveCategory(cat)}
+            className={`px-5 py-2 rounded-md font-semibold ${
+              activeCategory === cat
+                ? "bg-indigo-600 text-white"
+                : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+            }`}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
+
+      {/* TABLES */}
+      {activeCategory === "LAPTOPS" && (
+        <LaptopTable
+          items={laptops}
+          onEdit={goToEditLaptop}
+          onDelete={handleDeleteLaptop}
+        />
+      )}
+
+      {activeCategory === "BIKES" && (
+        <BikeTable
+          items={bikes}
+          onEdit={goToEditBike}
+          onDelete={handleDeleteBike}
+        />
+      )}
+
+      {activeCategory === "CARS" && (
+        <CarTable
+          items={cars}
+          onEdit={goToEditCar}
+          onDelete={handleDeleteCar}
+        />
+      )}
+
+      {activeCategory === "MOBILES" && (
+        <MobileTable
+          items={mobiles}
+          onEdit={goToEditMobile}
+          onDelete={handleDeleteMobile}
+        />
+      )}
+    </div>
+  );
+}
+
+/* -------------------------------- TABLE COMPONENTS -------------------------------- */
+
+function CategoryWrapper({ title, children }) {
+  return (
+    <div className="p-4 border rounded-md bg-white shadow-sm">
+      <h2 className="text-xl font-semibold mb-3">{title}</h2>
+      {children}
+    </div>
+  );
+}
+
+function Table({ children }) {
+  return (
+    <table className="w-full border rounded-lg bg-white">{children}</table>
+  );
+}
+
+function Th({ children }) {
+  return <th className="p-3 border bg-gray-100">{children}</th>;
+}
+
+function Td({ children }) {
+  return <td className="p-3 border text-sm">{children}</td>;
+}
+
+function ActionBtn({ children, onClick, color }) {
+  const cls =
+    color === "blue"
+      ? "bg-blue-600 hover:bg-blue-700"
+      : "bg-red-600 hover:bg-red-700";
+
+  return (
+    <button
+      onClick={onClick}
+      className={`px-3 py-1 rounded-md text-white text-sm ${cls} mr-2`}
+    >
+      {children}
+    </button>
+  );
+}
+
+/* ------------------ INDIVIDUAL TABLES -------------------- */
+
+function LaptopTable({ items, onEdit, onDelete }) {
+  return (
+    <CategoryWrapper title="Laptop Listings">
+      {items.length === 0 ? (
+        <p>No laptops found</p>
+      ) : (
+        <Table>
+          <thead>
+            <tr>
+              <Th>Brand</Th>
+              <Th>Model</Th>
+              <Th>Price</Th>
+              <Th>Status</Th>
+              <Th>Actions</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((l) => (
+              <tr key={l.laptopId ?? l.id}>
+                <Td>{l.brand}</Td>
+                <Td>{l.model}</Td>
+                <Td>{l.price}</Td>
+                <Td>{l.status}</Td>
+                <Td>
+                  <ActionBtn onClick={() => onEdit(l)} color="blue">
+                    Edit
+                  </ActionBtn>
+                  <ActionBtn onClick={() => onDelete(l)} color="red">
+                    Delete
+                  </ActionBtn>
+                </Td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      )}
+    </CategoryWrapper>
+  );
+}
+
+function BikeTable({ items, onEdit, onDelete }) {
+  return (
+    <CategoryWrapper title="Bike Listings">
+      {items.length === 0 ? (
+        <p>No bikes found</p>
+      ) : (
+        <Table>
+          <thead>
+            <tr>
+              <Th>Brand</Th>
+              <Th>Model</Th>
+              <Th>Variant</Th>
+              <Th>Price</Th>
+              <Th>Status</Th>
+              <Th>Actions</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((b) => (
+              <tr key={b.bike_id}>
+                <Td>{b.brand}</Td>
+                <Td>{b.model}</Td>
+                <Td>{b.variant}</Td>
+                <Td>{b.prize}</Td>
+                <Td>{b.status}</Td>
+                <Td>
+                  <ActionBtn onClick={() => onEdit(b)} color="blue">
+                    Edit
+                  </ActionBtn>
+                  <ActionBtn onClick={() => onDelete(b)} color="red">
+                    Delete
+                  </ActionBtn>
+                </Td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      )}
+    </CategoryWrapper>
+  );
+}
+
+function CarTable({ items, onEdit, onDelete }) {
+  return (
+    <CategoryWrapper title="Car Listings">
+      {items.length === 0 ? (
+        <p>No cars found</p>
+      ) : (
+        <Table>
+          <thead>
+            <tr>
+              <Th>Brand</Th>
+              <Th>Model</Th>
+              <Th>Price</Th>
+              <Th>Status</Th>
+              <Th>Actions</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((c) => (
+              <tr key={c.carId}>
+                <Td>{c.brand}</Td>
+                <Td>{c.model}</Td>
+                <Td>{c.price}</Td>
+                <Td>{c.status || "ACTIVE"}</Td>
+                <Td>
+                  <ActionBtn onClick={() => onEdit(c)} color="blue">
+                    Edit
+                  </ActionBtn>
+                  <ActionBtn onClick={() => onDelete(c)} color="red">
+                    Delete
+                  </ActionBtn>
+                </Td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      )}
+    </CategoryWrapper>
+  );
+}
+
+function MobileTable({ items, onEdit, onDelete }) {
+  return (
+    <CategoryWrapper title="Mobile Listings">
+      {items.length === 0 ? (
+        <p>No mobiles found</p>
+      ) : (
+        <Table>
+          <thead>
+            <tr>
+              <Th>Brand</Th>
+              <Th>Model</Th>
+              <Th>Price</Th>
+              <Th>Status</Th>
+              <Th>Actions</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((m) => (
+              <tr key={m.mobileId}>
+                <Td>{m.brand}</Td>
+                <Td>{m.model}</Td>
+                <Td>{m.price}</Td>
+                <Td>{m.status || "ACTIVE"}</Td>
+                <Td>
+                  <ActionBtn onClick={() => onEdit(m)} color="blue">
+                    Edit
+                  </ActionBtn>
+                  <ActionBtn onClick={() => onDelete(m)} color="red">
+                    Delete
+                  </ActionBtn>
+                </Td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      )}
+    </CategoryWrapper>
+  );
+}
+
+// // import React, { useEffect, useState, useCallback } from "react";
+// // import { useNavigate } from "react-router-dom";
+// // import { toast } from "react-toastify";
+
+// // // SERVICES
+// // import {
+// //   getLaptopsByStatus,
+// //   deleteLaptop,
+// // } from "../store/services/laptopServices";
+
+// // import { getBikesBySeller, deleteBike } from "../store/services/bikeServices";
+
+// // import { getCarsBySeller, deleteCar } from "../store/services/carServices";
+
+// // import {
+// //   getMobilesBySeller,
+// //   deleteMobile,
+// // } from "../store/services/mobileServices";
+
+// // const STATUS_FILTERS = ["ACTIVE", "PENDING", "SOLD"];
+
+// // export default function Dashboard() {
+// //   const navigate = useNavigate();
+// //   const sellerId = Number(localStorage.getItem("sellerId"));
+
+// //   const [activeCategory, setActiveCategory] = useState("LAPTOPS");
+
+// //   const [laptops, setLaptops] = useState([]);
+// //   const [bikes, setBikes] = useState([]);
+// //   const [cars, setCars] = useState([]);
+// //   const [mobiles, setMobiles] = useState([]);
+
+// //   const [loading, setLoading] = useState(false);
+
+// //   /** FETCH LAPTOP */
+// //   const fetchLaptops = useCallback(async () => {
+// //     try {
+// //       setLoading(true);
+
+// //       const results = await Promise.allSettled(
+// //         STATUS_FILTERS.map((status) =>
+// //           getLaptopsByStatus(sellerId, status).then((data) => ({
+// //             status,
+// //             data: Array.isArray(data) ? data : [],
+// //           }))
+// //         )
+// //       );
+
+// //       const merged = results.flatMap((res, idx) => {
+// //         if (res.status !== "fulfilled") return [];
+// //         return res.value.data.map((item) => ({
+// //           ...item,
+// //           status: item.status || STATUS_FILTERS[idx],
+// //         }));
+// //       });
+
+// //       setLaptops(merged);
+// //     } catch {
+// //       toast.error("Failed to load laptops");
+// //     } finally {
+// //       setLoading(false);
+// //     }
+// //   }, [sellerId]);
+
+// //   /** FETCH ON CATEGORY CHANGE */
+// //   useEffect(() => {
+// //     if (!sellerId) return;
+
+// //     const load = async () => {
+// //       setLoading(true);
+// //       try {
+// //         if (activeCategory === "LAPTOPS") await fetchLaptops();
+
+// //         if (activeCategory === "BIKES") {
+// //           const data = await getBikesBySeller(sellerId);
+// //           setBikes(Array.isArray(data) ? data : []);
+// //         }
+
+// //         if (activeCategory === "CARS") {
+// //           const data = await getCarsBySeller(sellerId);
+// //           setCars(Array.isArray(data) ? data : []);
+// //         }
+
+// //         if (activeCategory === "MOBILES") {
+// //           const data = await getMobilesBySeller(sellerId);
+// //           setMobiles(Array.isArray(data) ? data : []);
+// //         }
+// //       } catch {
+// //         toast.error("Load failed");
+// //       } finally {
+// //         setLoading(false);
+// //       }
+// //     };
+
+// //     load();
+// //   }, [activeCategory, sellerId, fetchLaptops]);
+
+// //   /** ---- DELETE HANDLERS ---- */
+
+// //   const handleDeleteLaptop = async (item) => {
+// //     const id = item.laptopId ?? item.id ?? item.laptop_id;
+
+// //     if (!id) return toast.error("Laptop ID missing");
+
+// //     if (!window.confirm("Delete this laptop?")) return;
+
+// //     try {
+// //       await deleteLaptop(id);
+// //       setLaptops((l) => l.filter((x) => (x.laptopId ?? x.id ?? x.laptop_id) !== id));
+// //       toast.success("Laptop deleted");
+// //     } catch (error) {
+// //       console.error("Delete laptop error:", error);
+// //       toast.error(error?.response?.data?.message || "Delete failed");
+// //     }
+// //   };
+
+// //   const handleDeleteBike = async (idOrObj) => {
+// //     const id =
+// //       typeof idOrObj === "number"
+// //         ? idOrObj
+// //         : idOrObj.bike_id ?? idOrObj.id ?? idOrObj.bikeId;
+
+// //     if (!id) return toast.error("Bike ID missing");
+// //     if (!window.confirm("Delete this bike?")) return;
+
+// //     try {
+// //       await deleteBike(id);
+// //       setBikes((l) => l.filter((x) => (x.bike_id ?? x.id ?? x.bikeId) !== id));
+// //       toast.success("Bike deleted");
+// //     } catch (error) {
+// //       console.error("Delete bike error:", error);
+// //       toast.error(error?.response?.data?.message || "Bike delete failed");
+// //     }
+// //   };
+
+// //   const handleDeleteCar = async (idOrObj) => {
+// //     const id =
+// //       typeof idOrObj === "number"
+// //         ? idOrObj
+// //         : idOrObj.carId ?? idOrObj.id ?? idOrObj.car_id;
+
+// //     if (!id) return toast.error("Car ID missing");
+// //     if (!window.confirm("Delete this car?")) return;
+
+// //     try {
+// //       await deleteCar(id);
+// //       setCars((l) => l.filter((x) => (x.carId ?? x.id ?? x.car_id) !== id));
+// //       toast.success("Car deleted");
+// //     } catch (error) {
+// //       console.error("Delete car error:", error);
+// //       toast.error(error?.response?.data?.message || "Car delete failed");
+// //     }
+// //   };
+
+// //   const handleDeleteMobile = async (idOrObj) => {
+// //     const id =
+// //       typeof idOrObj === "number"
+// //         ? idOrObj
+// //         : idOrObj.mobileId ?? idOrObj.id ?? idOrObj.mobile_id;
+
+// //     if (!id) return toast.error("Mobile ID missing");
+// //     if (!window.confirm("Delete this mobile?")) return;
+
+// //     try {
+// //       await deleteMobile(id);
+// //       setMobiles((l) => l.filter((x) => (x.mobileId ?? x.id ?? x.mobile_id) !== id));
+// //       toast.success("Mobile deleted");
+// //     } catch (error) {
+// //       console.error("Delete mobile error:", error);
+// //       toast.error(error?.response?.data?.message || "Mobile delete failed");
+// //     }
+// //   };
+
+// //   /** ---- EDIT ROUTERS ---- */
+
+// //   const goToEditLaptop = (item) => {
+// //     const id = item.laptopId ?? item.id ?? item.laptop_id;
+// //     if (!id) return toast.error("Laptop ID missing");
+
+// //     navigate(`/sell-laptop/${id}`, { state: { mode: "edit", item } });
+// //   };
+
+// //   const goToEditBike = (item) => {
+// //     const id = item.bike_id ?? item.id ?? item.bikeId;
+// //     if (!id) return toast.error("Bike ID missing");
+
+// //     navigate(`/sell-bike/${id}`, { state: { mode: "edit", item } });
+// //   };
+
+// //   const goToEditCar = (item) => {
+// //     const id = item.carId ?? item.id ?? item.car_id;
+// //     if (!id) return toast.error("Car ID missing");
+
+// //     navigate(`/sell-car/${id}`, { state: { mode: "edit", item } });
+// //   };
+
+// //   const goToEditMobile = (item) => {
+// //     const id = item.mobileId ?? item.id ?? item.mobile_id;
+// //     if (!id) return toast.error("Mobile ID missing");
+
+// //     navigate(`/sell-mobile/${id}`, { state: { mode: "edit", item } });
+// //   };
+
+// //   /** ---- UI ---- */
+// //   return (
+// //     <div className="container mx-auto px-4 py-6">
+// //       <div className="flex justify-between items-center mb-6">
+// //         <h1 className="text-3xl font-bold">Dashboard</h1>
+// //         <button
+// //           onClick={() => navigate("/sellfrom")}
+// //           className="px-5 py-2 bg-green-600 text-white rounded-md"
+// //         >
+// //           + Sell Product
+// //         </button>
+// //       </div>
+
+// //       {/* TABS */}
+// //       <div className="flex gap-3 mb-6">
+// //         {["LAPTOPS", "BIKES", "CARS", "MOBILES"].map((cat) => (
+// //           <button
+// //             key={cat}
+// //             onClick={() => setActiveCategory(cat)}
+// //             className={`px-5 py-2 rounded-md font-semibold ${
+// //               activeCategory === cat
+// //                 ? "bg-indigo-600 text-white"
+// //                 : "bg-gray-200 text-gray-800"
+// //             }`}
+// //           >
+// //             {cat}
+// //           </button>
+// //         ))}
+// //       </div>
+
+// //       {/* TABLES */}
+// //       {activeCategory === "LAPTOPS" && (
+// //         <LaptopTable
+// //           items={laptops}
+// //           onEdit={goToEditLaptop}
+// //           onDelete={handleDeleteLaptop}
+// //         />
+// //       )}
+
+// //       {activeCategory === "BIKES" && (
+// //         <BikeTable
+// //           items={bikes}
+// //           onEdit={goToEditBike}
+// //           onDelete={handleDeleteBike}
+// //         />
+// //       )}
+
+// //       {activeCategory === "CARS" && (
+// //         <CarTable
+// //           items={cars}
+// //           onEdit={goToEditCar}
+// //           onDelete={handleDeleteCar}
+// //         />
+// //       )}
+
+// //       {activeCategory === "MOBILES" && (
+// //         <MobileTable
+// //           items={mobiles}
+// //           onEdit={goToEditMobile}
+// //           onDelete={handleDeleteMobile}
+// //         />
+// //       )}
+// //     </div>
+// //   );
+// // }
+
+// // /* ------------------ TABLE COMPONENTS -------------------- */
+
+// // function CategoryWrapper({ title, children }) {
+// //   return (
+// //     <div className="p-4 border rounded-md bg-white shadow-sm">
+// //       <h2 className="text-xl font-semibold mb-3">{title}</h2>
+// //       {children}
+// //     </div>
+// //   );
+// // }
+
+// // function Table({ children }) {
+// //   return (
+// //     <table className="w-full border rounded-lg bg-white">{children}</table>
+// //   );
+// // }
+
+// // function Th({ children }) {
+// //   return <th className="p-3 border bg-gray-100">{children}</th>;
+// // }
+
+// // function Td({ children }) {
+// //   return <td className="p-3 border text-sm">{children}</td>;
+// // }
+
+// // function ActionBtn({ children, onClick, color }) {
+// //   const cls =
+// //     color === "blue"
+// //       ? "bg-blue-600 hover:bg-blue-700"
+// //       : "bg-red-600 hover:bg-red-700";
+
+// //   return (
+// //     <button
+// //       onClick={onClick}
+// //       className={`px-3 py-1 rounded-md text-white text-sm ${cls}`}
+// //     >
+// //       {children}
+// //     </button>
+// //   );
+// // }
+
+// // /* ---- INDIVIDUAL TABLES ---- */
+
+// // function LaptopTable({ items, onEdit, onDelete }) {
+// //   return (
+// //     <CategoryWrapper title="Laptop Listings">
+// //       {items.length === 0 ? (
+// //         <p>No laptops found</p>
+// //       ) : (
+// //         <Table>
+// //           <thead>
+// //             <tr>
+// //               <Th>Brand</Th>
+// //               <Th>Model</Th>
+// //               <Th>Price</Th>
+// //               <Th>Status</Th>
+// //               <Th>Actions</Th>
+// //             </tr>
+// //           </thead>
+// //           <tbody>
+// //             {items.map((l) => (
+// //               <tr key={l.laptopId ?? l.id}>
+// //                 <Td>{l.brand}</Td>
+// //                 <Td>{l.model}</Td>
+// //                 <Td>{l.price}</Td>
+// //                 <Td>{l.status}</Td>
+// //                 <Td>
+// //                   <ActionBtn onClick={() => onEdit(l)} color="blue">
+// //                     Edit
+// //                   </ActionBtn>
+// //                   <ActionBtn onClick={() => onDelete(l)} color="red">
+// //                     Delete
+// //                   </ActionBtn>
+// //                 </Td>
+// //               </tr>
+// //             ))}
+// //           </tbody>
+// //         </Table>
+// //       )}
+// //     </CategoryWrapper>
+// //   );
+// // }
+
+// // function BikeTable({ items, onEdit, onDelete }) {
+// //   return (
+// //     <CategoryWrapper title="Bike Listings">
+// //       {items.length === 0 ? (
+// //         <p>No bikes found</p>
+// //       ) : (
+// //         <Table>
+// //           <thead>
+// //             <tr>
+// //               <Th>Brand</Th>
+// //               <Th>Model</Th>
+// //               <Th>Variant</Th>
+// //               <Th>Price</Th>
+// //               <Th>Status</Th>
+// //               <Th>Actions</Th>
+// //             </tr>
+// //           </thead>
+// //           <tbody>
+// //             {items.map((b) => (
+// //               <tr key={b.bike_id}>
+// //                 <Td>{b.brand}</Td>
+// //                 <Td>{b.model}</Td>
+// //                 <Td>{b.variant}</Td>
+// //                 <Td>{b.prize}</Td>
+// //                 <Td>{b.status}</Td>
+// //                 <Td>
+// //                   <ActionBtn onClick={() => onEdit(b)} color="blue">
+// //                     Edit
+// //                   </ActionBtn>
+// //                   <ActionBtn onClick={() => onDelete(b)} color="red">
+// //                     Delete
+// //                   </ActionBtn>
+// //                 </Td>
+// //               </tr>
+// //             ))}
+// //           </tbody>
+// //         </Table>
+// //       )}
+// //     </CategoryWrapper>
+// //   );
+// // }
+
+// // function CarTable({ items, onEdit, onDelete }) {
+// //   return (
+// //     <CategoryWrapper title="Car Listings">
+// //       {items.length === 0 ? (
+// //         <p>No cars found</p>
+// //       ) : (
+// //         <Table>
+// //           <thead>
+// //             <tr>
+// //               <Th>Brand</Th>
+// //               <Th>Model</Th>
+// //               <Th>Price</Th>
+// //               <Th>Actions</Th>
+// //             </tr>
+// //           </thead>
+// //           <tbody>
+// //             {items.map((c) => (
+// //               <tr key={c.carId}>
+// //                 <Td>{c.brand}</Td>
+// //                 <Td>{c.model}</Td>
+// //                 <Td>{c.price}</Td>
+// //                 <Td>
+// //                   <ActionBtn onClick={() => onEdit(c)} color="blue">
+// //                     Edit
+// //                   </ActionBtn>
+// //                   <ActionBtn onClick={() => onDelete(c)} color="red">
+// //                     Delete
+// //                   </ActionBtn>
+// //                 </Td>
+// //               </tr>
+// //             ))}
+// //           </tbody>
+// //         </Table>
+// //       )}
+// //     </CategoryWrapper>
+// //   );
+// // }
+
+// // function MobileTable({ items, onEdit, onDelete }) {
+// //   return (
+// //     <CategoryWrapper title="Mobile Listings">
+// //       {items.length === 0 ? (
+// //         <p>No mobiles found</p>
+// //       ) : (
+// //         <Table>
+// //           <thead>
+// //             <tr>
+// //               <Th>Brand</Th>
+// //               <Th>Model</Th>
+// //               <Th>Price</Th>
+// //               <Th>Actions</Th>
+// //             </tr>
+// //           </thead>
+// //           <tbody>
+// //             {items.map((m) => (
+// //               <tr key={m.mobileId}>
+// //                 <Td>{m.brand}</Td>
+// //                 <Td>{m.model}</Td>
+// //                 <Td>{m.price}</Td>
+// //                 <Td>
+// //                   <ActionBtn onClick={() => onEdit(m)} color="blue">
+// //                     Edit
+// //                   </ActionBtn>
+// //                   <ActionBtn onClick={() => onDelete(m)} color="red">
+// //                     Delete
+// //                   </ActionBtn>
+// //                 </Td>
+// //               </tr>
+// //             ))}
+// //           </tbody>
+// //         </Table>
+// //       )}
+// //     </CategoryWrapper>
+// //   );
+// // }
+// import React, { useEffect, useState, useCallback } from "react";
+// import { useNavigate } from "react-router-dom";
+// import { toast } from "react-toastify";
+
+// // SERVICES
+// import {
+//   getLaptopsByStatus,
+//   deleteLaptop,
+// } from "../../store/services/laptopServices";
+
+// import {
+//   getBikesBySeller,
+//   deleteBike,
+// } from "../../store/services/bikeServices";
+
+// import { getCarsBySeller, deleteCar } from "../../store/services/carServices";
+
+// import {
+//   getMobilesBySeller,
+//   deleteMobile,
+// } from "../../store/services/mobileServices";
+
+// const STATUS_FILTERS = ["ACTIVE", "PENDING", "SOLD"];
+
+// export default function Dashboard() {
+//   const navigate = useNavigate();
+//   const sellerId = Number(localStorage.getItem("sellerId"));
+
+//   const [activeCategory, setActiveCategory] = useState("LAPTOPS");
+
+//   const [laptops, setLaptops] = useState([]);
+//   const [bikes, setBikes] = useState([]);
+//   const [cars, setCars] = useState([]);
+//   const [mobiles, setMobiles] = useState([]);
+
+//   const [loading, setLoading] = useState(false);
+
+//   /** FETCH LAPTOP */
+//   const fetchLaptops = useCallback(async () => {
+//     try {
+//       setLoading(true);
+
+//       const results = await Promise.allSettled(
+//         STATUS_FILTERS.map((status) =>
+//           getLaptopsByStatus(sellerId, status).then((data) => ({
+//             status,
+//             data: Array.isArray(data) ? data : [],
+//           }))
+//         )
+//       );
+
+//       const merged = results.flatMap((res, idx) => {
+//         if (res.status !== "fulfilled") return [];
+//         return res.value.data.map((item) => ({
+//           ...item,
+//           status: item.status || STATUS_FILTERS[idx],
+//         }));
+//       });
+
+//       setLaptops(merged);
+//     } catch {
+//       toast.error("Failed to load laptops");
+//     } finally {
+//       setLoading(false);
+//     }
+//   }, [sellerId]);
+
+//   /** FETCH ON CATEGORY CHANGE */
+//   useEffect(() => {
+//     if (!sellerId) return;
+
+//     const load = async () => {
+//       setLoading(true);
+//       try {
+//         if (activeCategory === "LAPTOPS") await fetchLaptops();
+
+//         if (activeCategory === "BIKES") {
+//           const data = await getBikesBySeller(sellerId);
+//           setBikes(Array.isArray(data) ? data : []);
+//         }
+
+//         if (activeCategory === "CARS") {
+//           const data = await getCarsBySeller(sellerId);
+//           setCars(Array.isArray(data) ? data : []);
+//         }
+
+//         if (activeCategory === "MOBILES") {
+//           const data = await getMobilesBySeller(sellerId);
+//           setMobiles(Array.isArray(data) ? data : []);
+//         }
+//       } catch {
+//         toast.error("Load failed");
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+
+//     load();
+//   }, [activeCategory, sellerId, fetchLaptops]);
+
+//   /** ---- DELETE HANDLERS ---- */
+
+//   const handleDeleteLaptop = async (item) => {
+//     const id = item.laptopId ?? item.id ?? item.laptop_id;
+
+//     if (!id) return toast.error("Laptop ID missing");
+
+//     if (!window.confirm("Delete this laptop?")) return;
+
+//     try {
+//       await deleteLaptop(id);
+//       setLaptops((l) =>
+//         l.filter((x) => (x.laptopId ?? x.id ?? x.laptop_id) !== id)
+//       );
+//       toast.success("Laptop deleted");
+//     } catch (error) {
+//       console.error("Delete laptop error:", error);
+//       toast.error(error?.response?.data?.message || "Delete failed");
+//     }
+//   };
+
+//   const handleDeleteBike = async (idOrObj) => {
+//     const id =
+//       typeof idOrObj === "number"
+//         ? idOrObj
+//         : idOrObj.bike_id ?? idOrObj.id ?? idOrObj.bikeId;
+
+//     if (!id) return toast.error("Bike ID missing");
+//     if (!window.confirm("Delete this bike?")) return;
+
+//     try {
+//       await deleteBike(id);
+//       setBikes((l) => l.filter((x) => (x.bike_id ?? x.id ?? x.bikeId) !== id));
+//       toast.success("Bike deleted");
+//     } catch (error) {
+//       console.error("Delete bike error:", error);
+//       toast.error(error?.response?.data?.message || "Bike delete failed");
+//     }
+//   };
+
+//   const handleDeleteCar = async (idOrObj) => {
+//     const id =
+//       typeof idOrObj === "number"
+//         ? idOrObj
+//         : idOrObj.carId ?? idOrObj.id ?? idOrObj.car_id;
+
+//     if (!id) return toast.error("Car ID missing");
+//     if (!window.confirm("Delete this car?")) return;
+
+//     try {
+//       await deleteCar(id);
+//       setCars((l) => l.filter((x) => (x.carId ?? x.id ?? x.car_id) !== id));
+//       toast.success("Car deleted");
+//     } catch (error) {
+//       console.error("Delete car error:", error);
+//       toast.error(error?.response?.data?.message || "Car delete failed");
+//     }
+//   };
+
+//   const handleDeleteMobile = async (idOrObj) => {
+//     const id =
+//       typeof idOrObj === "number"
+//         ? idOrObj
+//         : idOrObj.mobileId ?? idOrObj.id ?? idOrObj.mobile_id;
+
+//     if (!id) return toast.error("Mobile ID missing");
+//     if (!window.confirm("Delete this mobile?")) return;
+
+//     try {
+//       await deleteMobile(id);
+//       setMobiles((l) =>
+//         l.filter((x) => (x.mobileId ?? x.id ?? x.mobile_id) !== id)
+//       );
+//       toast.success("Mobile deleted");
+//     } catch (error) {
+//       console.error("Delete mobile error:", error);
+//       toast.error(error?.response?.data?.message || "Mobile delete failed");
+//     }
+//   };
+
+//   /** ---- EDIT ROUTERS ---- */
+
+//   const goToEditLaptop = (item) => {
+//     const id = item.laptopId ?? item.id ?? item.laptop_id;
+//     if (!id) return toast.error("Laptop ID missing");
+
+//     navigate(`/sell-laptop/${id}`, { state: { mode: "edit", item } });
+//   };
+
+//   const goToEditBike = (item) => {
+//     const id = item.bike_id ?? item.id ?? item.bikeId;
+//     if (!id) return toast.error("Bike ID missing");
+
+//     navigate(`/sell-bike/${id}`, { state: { mode: "edit", item } });
+//   };
+
+//   const goToEditCar = (item) => {
+//     const id = item.carId ?? item.id ?? item.car_id;
+//     if (!id) return toast.error("Car ID missing");
+
+//     navigate(`/sell-car/${id}`, { state: { mode: "edit", item } });
+//   };
+
+//   const goToEditMobile = (item) => {
+//     const id = item.mobileId ?? item.id ?? item.mobile_id;
+//     if (!id) return toast.error("Mobile ID missing");
+
+//     navigate(`/sell-mobile/${id}`, { state: { mode: "edit", item } });
+//   };
+
+//   /** ---- UI ---- */
+//   return (
+//     <div className="container mx-auto px-4 py-6">
+//       <div className="flex justify-between items-center mb-6">
+//         <h1 className="text-3xl font-bold">Dashboard</h1>
+//         <button
+//           onClick={() => navigate("/sellfrom")}
+//           className="px-5 py-2 bg-green-600 text-white rounded-md"
+//         >
+//           + Sell Product
+//         </button>
+//       </div>
+
+//       {/* TABS */}
+//       <div className="flex gap-3 mb-6">
+//         {["LAPTOPS", "BIKES", "CARS", "MOBILES"].map((cat) => (
+//           <button
+//             key={cat}
+//             onClick={() => setActiveCategory(cat)}
+//             className={`px-5 py-2 rounded-md font-semibold ${
+//               activeCategory === cat
+//                 ? "bg-indigo-600 text-white"
+//                 : "bg-gray-200 text-gray-800"
+//             }`}
+//           >
+//             {cat}
+//           </button>
+//         ))}
+//       </div>
+
+//       {/* TABLES */}
+//       {activeCategory === "LAPTOPS" && (
+//         <LaptopTable
+//           items={laptops}
+//           onEdit={goToEditLaptop}
+//           onDelete={handleDeleteLaptop}
+//         />
+//       )}
+
+//       {activeCategory === "BIKES" && (
+//         <BikeTable
+//           items={bikes}
+//           onEdit={goToEditBike}
+//           onDelete={handleDeleteBike}
+//         />
+//       )}
+
+//       {activeCategory === "CARS" && (
+//         <CarTable
+//           items={cars}
+//           onEdit={goToEditCar}
+//           onDelete={handleDeleteCar}
+//         />
+//       )}
+
+//       {activeCategory === "MOBILES" && (
+//         <MobileTable
+//           items={mobiles}
+//           onEdit={goToEditMobile}
+//           onDelete={handleDeleteMobile}
+//         />
+//       )}
+//     </div>
+//   );
+// }
+
+// /* ------------------ TABLE COMPONENTS -------------------- */
+
+// function CategoryWrapper({ title, children }) {
+//   return (
+//     <div className="p-4 border rounded-md bg-white shadow-sm">
+//       <h2 className="text-xl font-semibold mb-3">{title}</h2>
+//       {children}
+//     </div>
+//   );
+// }
+
+// function Table({ children }) {
+//   return (
+//     <table className="w-full border rounded-lg bg-white">{children}</table>
+//   );
+// }
+
+// function Th({ children }) {
+//   return <th className="p-3 border bg-gray-100">{children}</th>;
+// }
+
+// function Td({ children }) {
+//   return <td className="p-3 border text-sm">{children}</td>;
+// }
+
+// function ActionBtn({ children, onClick, color }) {
+//   const cls =
+//     color === "blue"
+//       ? "bg-blue-600 hover:bg-blue-700"
+//       : "bg-red-600 hover:bg-red-700";
+
+//   return (
+//     <button
+//       onClick={onClick}
+//       className={`px-3 py-1 rounded-md text-white text-sm ${cls}`}
+//     >
+//       {children}
+//     </button>
+//   );
+// }
+
+// /* ---- INDIVIDUAL TABLES ---- */
+
+// function LaptopTable({ items, onEdit, onDelete }) {
+//   return (
+//     <CategoryWrapper title="Laptop Listings">
+//       {items.length === 0 ? (
+//         <p>No laptops found</p>
+//       ) : (
+//         <Table>
+//           <thead>
+//             <tr>
+//               <Th>Brand</Th>
+//               <Th>Model</Th>
+//               <Th>Price</Th>
+//               <Th>Status</Th>
+//               <Th>Actions</Th>
+//             </tr>
+//           </thead>
+//           <tbody>
+//             {items.map((l) => (
+//               <tr key={l.laptopId ?? l.id}>
+//                 <Td>{l.brand}</Td>
+//                 <Td>{l.model}</Td>
+//                 <Td>{l.price}</Td>
+//                 <Td>{l.status}</Td>
+//                 <Td>
+//                   <ActionBtn onClick={() => onEdit(l)} color="blue">
+//                     Edit
+//                   </ActionBtn>
+//                   <ActionBtn onClick={() => onDelete(l)} color="red">
+//                     Delete
+//                   </ActionBtn>
+//                 </Td>
+//               </tr>
+//             ))}
+//           </tbody>
+//         </Table>
+//       )}
+//     </CategoryWrapper>
+//   );
+// }
+
+// function BikeTable({ items, onEdit, onDelete }) {
+//   return (
+//     <CategoryWrapper title="Bike Listings">
+//       {items.length === 0 ? (
+//         <p>No bikes found</p>
+//       ) : (
+//         <Table>
+//           <thead>
+//             <tr>
+//               <Th>Brand</Th>
+//               <Th>Model</Th>
+//               <Th>Variant</Th>
+//               <Th>Price</Th>
+//               <Th>Status</Th>
+//               <Th>Actions</Th>
+//             </tr>
+//           </thead>
+//           <tbody>
+//             {items.map((b) => (
+//               <tr key={b.bike_id}>
+//                 <Td>{b.brand}</Td>
+//                 <Td>{b.model}</Td>
+//                 <Td>{b.variant}</Td>
+//                 <Td>{b.prize}</Td>
+//                 <Td>{b.status}</Td>
+//                 <Td>
+//                   <ActionBtn onClick={() => onEdit(b)} color="blue">
+//                     Edit
+//                   </ActionBtn>
+//                   <ActionBtn onClick={() => onDelete(b)} color="red">
+//                     Delete
+//                   </ActionBtn>
+//                 </Td>
+//               </tr>
+//             ))}
+//           </tbody>
+//         </Table>
+//       )}
+//     </CategoryWrapper>
+//   );
+// }
+
+// function CarTable({ items, onEdit, onDelete }) {
+//   return (
+//     <CategoryWrapper title="Car Listings">
+//       {items.length === 0 ? (
+//         <p>No cars found</p>
+//       ) : (
+//         <Table>
+//           <thead>
+//             <tr>
+//               <Th>Brand</Th>
+//               <Th>Model</Th>
+//               <Th>Price</Th>
+//               <Th>Actions</Th>
+//             </tr>
+//           </thead>
+//           <tbody>
+//             {items.map((c) => (
+//               <tr key={c.carId}>
+//                 <Td>{c.brand}</Td>
+//                 <Td>{c.model}</Td>
+//                 <Td>{c.price}</Td>
+//                 <Td>
+//                   <ActionBtn onClick={() => onEdit(c)} color="blue">
+//                     Edit
+//                   </ActionBtn>
+//                   <ActionBtn onClick={() => onDelete(c)} color="red">
+//                     Delete
+//                   </ActionBtn>
+//                 </Td>
+//               </tr>
+//             ))}
+//           </tbody>
+//         </Table>
+//       )}
+//     </CategoryWrapper>
+//   );
+// }
+
+// function MobileTable({ items, onEdit, onDelete }) {
+//   return (
+//     <CategoryWrapper title="Mobile Listings">
+//       {items.length === 0 ? (
+//         <p>No mobiles found</p>
+//       ) : (
+//         <Table>
+//           <thead>
+//             <tr>
+//               <Th>Brand</Th>
+//               <Th>Model</Th>
+//               <Th>Price</Th>
+//               <Th>Actions</Th>
+//             </tr>
+//           </thead>
+//           <tbody>
+//             {items.map((m) => (
+//               <tr key={m.mobileId}>
+//                 <Td>{m.brand}</Td>
+//                 <Td>{m.model}</Td>
+//                 <Td>{m.price}</Td>
+//                 <Td>
+//                   <ActionBtn onClick={() => onEdit(m)} color="blue">
+//                     Edit
+//                   </ActionBtn>
+//                   <ActionBtn onClick={() => onDelete(m)} color="red">
+//                     Delete
+//                   </ActionBtn>
+//                 </Td>
+//               </tr>
+//             ))}
+//           </tbody>
+//         </Table>
+//       )}
+//     </CategoryWrapper>
+//   );
+// }
