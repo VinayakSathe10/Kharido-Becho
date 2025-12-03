@@ -56,7 +56,7 @@ export default function SellBikeForm({ productId }) {
       try {
         setLoading(true);
         const bike = await getBikeById(productId);
-        
+
         if (bike) {
           setForm({
             prize: bike.prize || "",
@@ -329,7 +329,13 @@ export default function SellBikeForm({ productId }) {
             disabled={isLoading}
             className="px-6 py-2 bg-green-600 text-white rounded-md"
           >
-            {isLoading ? (isEditMode ? "Updating…" : "Submitting…") : (isEditMode ? "Update Bike" : "Add Bike")}
+            {isLoading
+              ? isEditMode
+                ? "Updating…"
+                : "Submitting…"
+              : isEditMode
+              ? "Update Bike"
+              : "Add Bike"}
           </button>
 
           {message && <p className="text-green-600 text-sm">{message}</p>}

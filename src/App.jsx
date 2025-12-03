@@ -1,17 +1,17 @@
 /**
  * App.jsx - Main Application Router
- * 
+ *
  * Implements role-based routing with three user types:
- * 
+ *
  * 1. GUEST (unauthenticated): Can browse products, redirected to login when trying to buy
  * 2. BUYER (role: "BUYER"): Can browse and purchase products, see buyer-specific UI
  * 3. SELLER (role: "SELLER"): Redirected to dashboard after login, see seller-specific UI
- * 
+ *
  * Route Categories:
  * - Public routes: Accessible to all (guest, buyer, seller)
  * - Buyer-protected routes: Only accessible to authenticated buyers
  * - Seller-protected routes: Only accessible to authenticated sellers
- * 
+ *
  * UI Components:
  * - Navbar: Always visible (except on auth pages), role-aware
  * - BottomBar: Visible for guest and buyer, hidden for seller
@@ -55,7 +55,7 @@ import SellerRequestList from "./components/SellerRequestList";
 // Profile
 import Profile from "../src/components/Profile";
 
-function App() {  
+function App() {
   const location = useLocation();
   const isAuthPage = ["/login", "/register", "/forget-password"].includes(
     location.pathname
@@ -270,5 +270,3 @@ function App() {
 }
 
 export default App;
-
-

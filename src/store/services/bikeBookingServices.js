@@ -8,20 +8,34 @@ export const createBikeBooking = async (bikeId, buyerId, message) => {
     message,
   };
 
-  const res = await apiClient.post("/bikes/bookings/post", payload, {
-    params: { bikeId, buyerId, message },
-  });
+  // Backend expects a JSON body; avoid duplicating data in query params.
+  const res = await apiClient.post("/bikes/bookings/post", payload);
 
   return res.data;
 };
 
-// 2. Send chat message for a booking
-export const sendBikeBookingMessage = async (bookingId, payload) => {
-  const res = await apiClient.post(
-    `/bikes/bookings/chat/send`,
-    payload,
-    { params: { bookingId } }
-  );
+// 2. Chat APIs
+// 2a. Get chat history for a booking
+export const getBikeBookingChatMessages = async (bookingId) => {
+  const res = await apiClient.get("/bikes/bookings/chat", {
+    params: { bookingId },
+  });
+
+  const data = res.data;
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.messages)) return data.messages;
+  return [];
+};
+
+// 2b. Send chat message for a booking (JSON body only)
+// messagePayload is expected to contain at least: { content, senderType }
+export const sendBikeBookingMessage = async (bookingId, messagePayload) => {
+  const payload = {
+    bookingId,
+    ...messagePayload,
+  };
+
+  const res = await apiClient.post(`/bikes/bookings/chat/send`, payload);
   return res.data;
 };
 
