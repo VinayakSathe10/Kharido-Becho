@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
-import useSellerId from "../hooks/useSellerId";
+import useSellerId from "../../hooks/useSellerId";
 import {
   getLaptopBookingByBuyer,
   getLaptopBookingById,
   updateLaptopBookingStatus,
   completeLaptopBooking,
-} from "../store/services/laptopBookingServices";
+} from "../../store/services/laptopBookingServices";
 
 const SellerLaptopRequests = () => {
   const { sellerId } = useSellerId();

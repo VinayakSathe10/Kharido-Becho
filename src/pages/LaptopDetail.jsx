@@ -320,11 +320,11 @@ import { useParams, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 
 // SERVICES
-import { getLaptopById } from "../../store/services/laptopServices";
+import { getLaptopById } from "../store/services/laptopServices";
 import {
   createLaptopBooking,
   getLaptopBookingByBuyer,
-} from "../../store/services/laptopBookingServices";
+} from "../store/services/laptopBookingServices";
 
 // Icons
 import {

@@ -3,25 +3,22 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 // Shared Component
-import DashboardStats from "../../components/DashboardStats";
+import DashboardStats from "../components/Dashboard/DashboardStats";
 
 // SERVICES
 import {
   getLaptopsByStatus,
   deleteLaptop,
-} from "../../store/services/laptopServices";
+} from "../store/services/laptopServices";
 
-import {
-  getBikesBySeller,
-  deleteBike,
-} from "../../store/services/bikeServices";
+import { getBikesBySeller, deleteBike } from "../store/services/bikeServices";
 
-import { getCarsBySeller, deleteCar } from "../../store/services/carServices";
+import { getCarsBySeller, deleteCar } from "../store/services/carServices";
 
 import {
   getMobilesBySeller,
   deleteMobile,
-} from "../../store/services/mobileServices";
+} from "../store/services/mobileServices";
 
 const STATUS_FILTERS = ["ACTIVE", "PENDING", "SOLD"];
 

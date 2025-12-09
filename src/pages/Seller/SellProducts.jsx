@@ -1,10 +1,10 @@
 import { useMemo, useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 
-import SellBikeForm from "../../components/SellBikeForm";
-import SellCarForm from "../../components/SellCarForm";
-import SellLaptopForm from "../../components/SellLaptopForm";
-import SellMobileForm from "../../components/SellMobileForm";
+import SellBikeForm from "../../components/Bike/SellBikeForm";
+import SellCarForm from "../../components/Car/SellCarForm";
+import SellLaptopForm from "../../components/Laptop/SellLaptopForm";
+import SellMobileForm from "../../components/Mobile/SellMobileForm";
 
 export default function SellProducts({ initialTab }) {
   const { id } = useParams();
@@ -18,8 +18,16 @@ export default function SellProducts({ initialTab }) {
 
   const tabs = useMemo(
     () => [
-      { id: "laptop", label: "Laptop", component: <SellLaptopForm productId={id} /> },
-      { id: "mobile", label: "Mobile", component: <SellMobileForm productId={id} /> },
+      {
+        id: "laptop",
+        label: "Laptop",
+        component: <SellLaptopForm productId={id} />,
+      },
+      {
+        id: "mobile",
+        label: "Mobile",
+        component: <SellMobileForm productId={id} />,
+      },
       { id: "car", label: "Car", component: <SellCarForm productId={id} /> },
       { id: "bike", label: "Bike", component: <SellBikeForm productId={id} /> },
     ],
@@ -60,4 +68,3 @@ export default function SellProducts({ initialTab }) {
     </div>
   );
 }
-

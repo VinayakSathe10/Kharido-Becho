@@ -13,7 +13,7 @@ import {
   MdSecurity,
   MdTrendingUp,
 } from "react-icons/md";
-import RecommendationGrid from "../../components/RecommendationGrid";
+import RecommendationGrid from "../components/RecommendationGrid";
 
 export default function Home() {
   const navigate = useNavigate();

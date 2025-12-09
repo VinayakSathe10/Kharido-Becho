@@ -326,9 +326,13 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 
-import useSellerId from "../hooks/useSellerId";
-import { addCar, updateCar, getCarById } from "../store/services/carServices";
-import { uploadCarImage } from "../store/services/carImageServices";
+import useSellerId from "../../pages/useSellerId";
+import {
+  addCar,
+  updateCar,
+  getCarById,
+} from "../../store/services/carServices";
+import { uploadCarImage } from "../../store/services/carImageServices";
 
 const initialCarForm = {
   title: "",
@@ -401,7 +405,7 @@ export default function SellCarForm({ productId }) {
       try {
         setLoading(true);
         const car = await getCarById(productId);
-        
+
         if (car) {
           setForm({
             title: car.title || "",
@@ -806,7 +810,13 @@ export default function SellCarForm({ productId }) {
           disabled={creating}
           className="md:col-span-2 bg-indigo-600 text-white py-3 rounded font-semibold disabled:opacity-60"
         >
-          {creating ? (isEditMode ? "Updating…" : "Creating…") : (isEditMode ? "Update Car Listing" : "Create Car Listing")}
+          {creating
+            ? isEditMode
+              ? "Updating…"
+              : "Creating…"
+            : isEditMode
+            ? "Update Car Listing"
+            : "Create Car Listing"}
         </button>
       </form>
 

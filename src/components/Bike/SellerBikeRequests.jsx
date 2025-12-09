@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
-import useSellerId from "../hooks/useSellerId";
+import useSellerId from "../../hooks/useSellerId";
 import {
   getPendingBikeBookings,
   rejectBikeBooking,
   completeBikeBooking,
-} from "../store/services/bikeBookingServices";
+} from "../../store/services/bikeBookingServices";
 
 const SellerBikeRequests = () => {
   const { sellerId } = useSellerId();

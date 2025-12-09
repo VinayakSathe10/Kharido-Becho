@@ -306,9 +306,13 @@ import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { useNavigate, useLocation } from "react-router-dom";
 
-import useSellerId from "../hooks/useSellerId";
-import { addMobile, updateMobile, getMobileById } from "../store/services/mobileServices";
-import { uploadMobileImage } from "../store/services/mobileImageServices";
+import useSellerId from "../../pages/useSellerId";
+import {
+  addMobile,
+  updateMobile,
+  getMobileById,
+} from "../../store/services/mobileServices";
+import { uploadMobileImage } from "../../store/services/mobileImageServices";
 
 const initialMobileForm = {
   title: "",
@@ -350,7 +354,7 @@ export default function SellMobileForm({ productId }) {
       try {
         setLoading(true);
         const mobile = await getMobileById(productId);
-        
+
         if (mobile) {
           setForm({
             title: mobile.title || "",
@@ -570,7 +574,13 @@ export default function SellMobileForm({ productId }) {
           disabled={creating}
           className="md:col-span-2 bg-green-600 text-white py-3 rounded font-semibold disabled:opacity-60"
         >
-          {creating ? (isEditMode ? "Updating…" : "Creating…") : (isEditMode ? "Update Mobile Listing" : "Create Mobile Listing")}
+          {creating
+            ? isEditMode
+              ? "Updating…"
+              : "Creating…"
+            : isEditMode
+            ? "Update Mobile Listing"
+            : "Create Mobile Listing"}
         </button>
       </form>
 

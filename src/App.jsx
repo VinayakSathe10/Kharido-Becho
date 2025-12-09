@@ -12,16 +12,16 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import RoleBasedRoute from "./components/RoleBasedRoute";
 
 // Public pages
-import Home from "./hooks/pages/Home";
-import BuyCars from "./hooks/pages/BuyCars";
-import BuyBikes from "./hooks/pages/BuyBikes";
-import BuyMobiles from "./hooks/pages/BuyMobiles";
-import BuyLaptops from "./hooks/pages/BuyLaptops";
-import BuyProducts from "./hooks/pages/BuyProducts";
-import Contact from "./hooks/pages/Contact";
-import Services from "./hooks/pages/Services";
-import ProductDetail from "./hooks/pages/ProductDetail";
-import LaptopDetail from "./hooks/pages/LaptopDetail";
+import Home from "./pages/Home";
+import BuyCars from "./pages/Buyer/BuyCars";
+import BuyBikes from "./pages/Buyer/BuyBikes";
+import BuyMobiles from "./pages/Buyer/BuyMobiles";
+import BuyLaptops from "./pages/Buyer/BuyLaptops";
+import BuyProducts from "./pages/Buyer/BuyProducts";
+import Contact from "./pages/Contact";
+import Services from "./pages/Services";
+import ProductDetail from "./pages/ProductDetail";
+import LaptopDetail from "./pages/LaptopDetail";
 
 // Auth pages
 import Login from "./components/Auth/Login ";
@@ -30,26 +30,26 @@ import ForgetPassword from "./components/Auth/ForgetPassword";
 import ResetPassword from "./components/Auth/ResetPassword";
 
 // Buyer general chat
-import BuyerChatList from "./hooks/pages/BuyerChatList";
-import BuyerChatThread from "./hooks/pages/BuyerChatThread";
+import BuyerChatList from "./pages/Buyer/BuyerChatList";
+import BuyerChatThread from "./pages/Buyer/BuyerChatThread";
 
 // Seller general chat
-import SellerChatList from "./components/SellerChatList";
-import SellerChatThread from "./components/SellerChatThread";
-import SellerRequestList from "./components/SellerRequestList";
+import SellerChatList from "./components/Chat/SellerChatList";
+import SellerChatThread from "./components/Chat/SellerChatThread";
+import SellerRequestList from "./components/Chat/SellerRequestList";
 
 // Dashboard + sell
-import Dashboard from "./hooks/pages/Dashboard";
-import SellProducts from "./hooks/pages/SellProducts";
+import Dashboard from "./pages/Dashboard";
+import SellProducts from "./pages/Seller/SellProducts";
 
 // Profile
 import Profile from "./components/Profile";
 
-// ⭐ NEW — Laptop Chat Pages (Buyer + Seller)
-import LaptopChat from "./hooks/pages/LaptopChat";
-import BuyerLaptopChatList from "./hooks/pages/BuyerLaptopChatList";
-import SellerLaptopChatList from "./hooks/pages/SellerLaptopChatList";
-import SellerLaptopChatThread from "./hooks/pages/SellerLaptopChatThread";
+// Laptop Chat
+import LaptopChat from "./pages/LaptopChat";
+import BuyerLaptopChatList from "./pages/Buyer/BuyerLaptopChatList";
+import SellerLaptopChatList from "./pages/Seller/SellerLaptopChatList";
+import SellerLaptopChatThread from "./pages/Seller/SellerLaptopChatThread";
 
 function App() {
   const location = useLocation();
@@ -141,8 +141,6 @@ function App() {
           {/* ---------------------------------------
                 BUYER ROUTES
           ---------------------------------------- */}
-
-          {/* Buyer general chat */}
           <Route
             path="/buyer/chat"
             element={
@@ -161,7 +159,6 @@ function App() {
             }
           />
 
-          {/* Buyer laptop chat list */}
           <Route
             path="/buyer/laptop-chats"
             element={
@@ -171,7 +168,6 @@ function App() {
             }
           />
 
-          {/* Buyer laptop chat thread */}
           <Route
             path="/chat/laptop/:bookingId"
             element={
@@ -202,7 +198,7 @@ function App() {
             }
           />
 
-          {/* SELL PAGES */}
+          {/* SELL PRODUCT PAGE */}
           <Route
             path="/sellfrom"
             element={
@@ -212,7 +208,46 @@ function App() {
             }
           />
 
-          {/* Seller general chat */}
+          {/* ---------------------------------------
+                SELL PRODUCT EDIT ROUTES (ADDED)
+          ---------------------------------------- */}
+          <Route
+            path="/sell-laptop/:id"
+            element={
+              <ProtectedRoute requiredRole="SELLER">
+                <SellProducts type="laptop" mode="edit" />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/sell-bike/:id"
+            element={
+              <ProtectedRoute requiredRole="SELLER">
+                <SellProducts type="bike" mode="edit" />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/sell-car/:id"
+            element={
+              <ProtectedRoute requiredRole="SELLER">
+                <SellProducts type="car" mode="edit" />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/sell-mobile/:id"
+            element={
+              <ProtectedRoute requiredRole="SELLER">
+                <SellProducts type="mobile" mode="edit" />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Seller Chats */}
           <Route
             path="/seller/chat"
             element={
@@ -231,7 +266,6 @@ function App() {
             }
           />
 
-          {/* Seller Laptop Chat List */}
           <Route
             path="/seller/chat/laptops"
             element={
@@ -241,7 +275,6 @@ function App() {
             }
           />
 
-          {/* Seller Laptop Chat Thread */}
           <Route
             path="/seller/chat/laptop/:bookingId"
             element={
@@ -251,7 +284,6 @@ function App() {
             }
           />
 
-          {/* Seller request list */}
           <Route
             path="/seller/requests"
             element={

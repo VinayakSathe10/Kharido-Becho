@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
-import useSellerId from "../hooks/useSellerId";
+import useSellerId from "../../pages/useSellerId";
 import {
   addBike as addBikeService,
   updateBike,
   getBikeById,
   uploadBikeImage as uploadBikeImageService,
-} from "../store/services/bikeServices";
+} from "../../store/services/bikeServices";
 
 const initialForm = {
   prize: "",

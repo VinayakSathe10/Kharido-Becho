@@ -6,8 +6,8 @@ import {
   updateLaptop,
   getLaptopById,
   uploadLaptopPhoto,
-} from "../store/services/laptopServices";
-import useSellerId from "../hooks/useSellerId";
+} from "../../store/services/laptopServices";
+import useSellerId from "../../pages/useSellerId";
 
 export default function SellLaptopForm({ productId }) {
   const navigate = useNavigate();
@@ -59,7 +59,7 @@ export default function SellLaptopForm({ productId }) {
       try {
         setLoading(true);
         const laptop = await getLaptopById(productId);
-        
+
         if (laptop) {
           setFormData({
             serialNumber: laptop.serialNumber || "",
@@ -244,10 +244,14 @@ export default function SellLaptopForm({ productId }) {
           className="col-span-2 bg-blue-600 text-white py-3 rounded mt-4"
         >
           {addLoading
-            ? (isEditMode ? "Updating..." : "Creating...")
+            ? isEditMode
+              ? "Updating..."
+              : "Creating..."
             : sellerLoading
             ? "Resolving seller..."
-            : (isEditMode ? "Update Laptop" : "Create Laptop")}
+            : isEditMode
+            ? "Update Laptop"
+            : "Create Laptop"}
         </button>
       </form>
 
