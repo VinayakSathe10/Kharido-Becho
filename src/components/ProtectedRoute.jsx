@@ -1,8 +1,8 @@
 /**
  * ProtectedRoute Component
- * 
+ *
  * Controls access to routes based on authentication and role requirements.
- * 
+ *
  * Behavior:
  * - If `requiredRole` is null: route is accessible to any authenticated user
  * - If `requiredRole` is "BUYER": only buyers can access
@@ -14,6 +14,9 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
+/* ============================================================
+   LOADING SCREEN
+============================================================ */
 function LoadingScreen() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -22,29 +25,37 @@ function LoadingScreen() {
   );
 }
 
+/* ============================================================
+   PROTECTED ROUTE
+============================================================ */
 export default function ProtectedRoute({ children, requiredRole = null }) {
   const { isSignedIn, isLoading, roles } = useAuth();
 
-  // Show loading spinner while checking auth state
+  // Show spinner until auth state is initialized
   if (isLoading) {
     return <LoadingScreen />;
   }
 
-  // If not authenticated, redirect to login
+  /* ============================================================
+     IF NOT LOGGED IN → GO TO HOME (NOT LOGIN)
+     This FIXES the logout redirect issue.
+  ============================================================ */
   if (!isSignedIn) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/" replace />;
   }
 
-  // If a specific role is required, check if user has it
+  /* ============================================================
+     ROLE VALIDATION (if required)
+  ============================================================ */
   if (requiredRole) {
     const hasRole = roles.includes(requiredRole);
+
+    // user doesn't have correct role → go home
     if (!hasRole) {
-      // User doesn't have required role, redirect to home
       return <Navigate to="/" replace />;
     }
   }
 
-  // User is authenticated and has required role (if any), render children
+  // Authenticated & authorized → show the route
   return children;
 }
-

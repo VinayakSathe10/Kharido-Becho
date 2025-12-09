@@ -82,14 +82,13 @@ export default function RecommendationGrid() {
       )}
 
       <div className="mt-8 text-center">
-        <Link
+        {/* <Link
           to="/buy/bikes"
           className="px-6 py-3 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
         >
           View All Bikes
-        </Link>
+        </Link> */}
       </div>
     </section>
   );
 }
-

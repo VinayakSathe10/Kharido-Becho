@@ -1,14 +1,14 @@
 /**
  * BottomBar Component
- * 
+ *
  * Bottom navigation bar that appears for GUEST and BUYER users.
  * Hidden for SELLER users.
- * 
+ *
  * Uses AuthContext to determine user role and conditionally render.
  */
 
 import { Link, useLocation } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 
 export default function BottomBar() {
   const location = useLocation();
@@ -129,4 +129,3 @@ export default function BottomBar() {
     </nav>
   );
 }
-
