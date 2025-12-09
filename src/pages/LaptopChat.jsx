@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import {
   getLaptopBookingById,
   sendLaptopBookingMessage,
-} from "../../store/services/laptopBookingServices";
+} from "../store/services/laptopBookingServices";
 import { toast } from "react-toastify";
 
 export default function LaptopChat() {

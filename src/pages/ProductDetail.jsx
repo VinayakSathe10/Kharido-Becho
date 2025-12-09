@@ -1,16 +1,16 @@
 /**
  * ProductDetail Component
- * 
+ *
  * Example product detail page demonstrating role-based access control:
- * 
+ *
  * - GUEST: Can view product details, but "Buy Now" / "View Detail Price" buttons
  *   redirect to buyer login page
- * 
+ *
  * - BUYER: Can view product details and proceed to buy (buttons are enabled)
- * 
+ *
  * - SELLER: Can view product details, but buy actions are disabled/redirected
  *   (sellers shouldn't buy products, they sell them)
- * 
+ *
  * This component uses useAuth to check user role and conditionally render
  * buy actions based on role.
  */
@@ -18,8 +18,8 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { useAuth } from "../../context/AuthContext";
-import { getBikeById } from "../../store/services/bikeServices";
+import { useAuth } from "../context/AuthContext";
+import { getBikeById } from "../store/services/bikeServices";
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -58,7 +58,7 @@ export default function ProductDetail() {
 
   /**
    * Handle "Buy Now" button click
-   * 
+   *
    * Role-based behavior:
    * - GUEST: Redirect to buyer login with return URL
    * - BUYER: Proceed to checkout/purchase flow
@@ -91,7 +91,7 @@ export default function ProductDetail() {
 
   /**
    * Handle "View Detail Price" or "Contact Seller" button
-   * 
+   *
    * Similar role-based logic as Buy Now
    */
   const handleViewPrice = () => {
@@ -165,7 +165,9 @@ export default function ProductDetail() {
               {isBuyer ? (
                 <div className="mb-6">
                   <p className="text-2xl font-bold text-green-600">
-                    ₹ {product.prize?.toLocaleString() || product.price?.toLocaleString()}
+                    ₹{" "}
+                    {product.prize?.toLocaleString() ||
+                      product.price?.toLocaleString()}
                   </p>
                   <p className="text-sm text-gray-500 mt-1">
                     Final price (buyer only)
@@ -235,7 +237,13 @@ export default function ProductDetail() {
               {/* Role indicator (for debugging/demo) */}
               <div className="mt-4 text-xs text-gray-500">
                 Current role:{" "}
-                {isGuest ? "Guest" : isBuyer ? "Buyer" : isSeller ? "Seller" : "Unknown"}
+                {isGuest
+                  ? "Guest"
+                  : isBuyer
+                  ? "Buyer"
+                  : isSeller
+                  ? "Seller"
+                  : "Unknown"}
               </div>
             </div>
           </div>
@@ -283,4 +291,3 @@ export default function ProductDetail() {
     </div>
   );
 }
-

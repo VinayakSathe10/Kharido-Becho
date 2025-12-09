@@ -354,7 +354,7 @@ export default function Navbar() {
 
       toast.success("Logged out successfully");
 
-      navigate("/", { replace: true }); // 🔥 Go to Home instead of Login
+      navigate("/", { replace: true }); //  Go to Home instead of Login
     } catch (err) {
       toast.error("Logout failed");
     }

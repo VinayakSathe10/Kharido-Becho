@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { MdClose } from "react-icons/md";
-import useChat from "../hooks/useChat";
+import useChat from "../../pages/useChat";
 
 /**
  * Generic chat modal bound to a specific bike booking.
@@ -13,8 +13,7 @@ import useChat from "../hooks/useChat";
  */
 const ChatModal = ({ isOpen, onClose, bookingId, senderType = "BUYER" }) => {
   const [inputValue, setInputValue] = useState("");
-  const { messages, loading, sending, error, sendMessage } =
-    useChat(bookingId);
+  const { messages, loading, sending, error, sendMessage } = useChat(bookingId);
 
   const messagesEndRef = useRef(null);
 
@@ -135,5 +134,3 @@ const ChatModal = ({ isOpen, onClose, bookingId, senderType = "BUYER" }) => {
 };
 
 export default ChatModal;
-
-
