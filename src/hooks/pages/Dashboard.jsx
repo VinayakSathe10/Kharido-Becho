@@ -19,6 +19,7 @@ import {
   deleteBike,
   updateBike,
 } from "../../store/services/bikeServices";
+
 import { getCarsBySeller } from "../../store/services/carServices";
 import { getMobilesBySeller } from "../../store/services/mobileServices";
 
@@ -37,7 +38,7 @@ export default function Dashboard() {
 
   const [loading, setLoading] = useState(false);
 
-  // LAPTOP EDITING
+  // Laptop editing
   const [editingLaptop, setEditingLaptop] = useState(null);
   const [editLaptopForm, setEditLaptopForm] = useState({
     price: "",
@@ -45,7 +46,7 @@ export default function Dashboard() {
   });
   const [savingLaptop, setSavingLaptop] = useState(false);
 
-  // BIKE EDITING
+  // Bike editing
   const [editingBike, setEditingBike] = useState(null);
   const [editBikeForm, setEditBikeForm] = useState({
     prize: "",
@@ -53,6 +54,9 @@ export default function Dashboard() {
   });
   const [savingBike, setSavingBike] = useState(false);
 
+  /* ---------------------------------------------------
+     FETCH LAPTOPS BY STATUS
+  --------------------------------------------------- */
   const fetchLaptops = useCallback(async () => {
     if (!sellerId) return;
 
@@ -84,6 +88,9 @@ export default function Dashboard() {
     }
   }, [sellerId]);
 
+  /* ---------------------------------------------------
+     FETCH BIKES BY STATUS
+  --------------------------------------------------- */
   const fetchBikes = useCallback(async () => {
     if (!sellerId) return;
 
@@ -115,10 +122,13 @@ export default function Dashboard() {
     }
   }, [sellerId]);
 
+  /* ---------------------------------------------------
+     LOAD CATEGORY ITEMS
+  --------------------------------------------------- */
   useEffect(() => {
     if (!sellerId) return;
 
-    const load = async () => {
+    const loadCategory = async () => {
       setLoading(true);
       try {
         if (activeCategory === "LAPTOPS") {
@@ -133,26 +143,28 @@ export default function Dashboard() {
           setMobiles(data);
         }
       } catch (err) {
-        console.error("Error loading category items", err);
-        toast.error("Could not load category items.");
+        console.error("Loading failed", err);
+        toast.error("Failed to load listings.");
       } finally {
         setLoading(false);
       }
     };
 
-    load();
+    loadCategory();
   }, [activeCategory, sellerId, fetchLaptops, fetchBikes]);
 
+  /* ---------------------------------------------------
+     DELETE LAPTOP
+  --------------------------------------------------- */
   const handleDeleteLaptop = async (listing) => {
     const id = listing.id ?? listing.laptopId;
-    if (!id) {
-      toast.error("Invalid laptop id.");
-      return;
-    }
+    if (!id) return toast.error("Invalid laptop id.");
     if (!window.confirm("Delete this laptop listing?")) return;
+
     try {
       await deleteLaptop(id);
       toast.success("Laptop deleted.");
+
       setLaptops((prev) =>
         prev.filter((item) => (item.id ?? item.laptopId) !== id)
       );
@@ -162,6 +174,9 @@ export default function Dashboard() {
     }
   };
 
+  /* ---------------------------------------------------
+     START EDIT LAPTOP
+  --------------------------------------------------- */
   const handleStartEditLaptop = (listing) => {
     setEditingLaptop(listing);
     setEditLaptopForm({
@@ -173,10 +188,7 @@ export default function Dashboard() {
   const handleSaveLaptopEdit = async () => {
     if (!editingLaptop) return;
     const id = editingLaptop.id ?? editingLaptop.laptopId;
-    if (!id) {
-      toast.error("Invalid laptop id.");
-      return;
-    }
+    if (!id) return toast.error("Invalid laptop id.");
 
     setSavingLaptop(true);
     try {
@@ -197,6 +209,7 @@ export default function Dashboard() {
             : item
         )
       );
+
       setEditingLaptop(null);
     } catch (err) {
       console.error("Update laptop failed", err);
@@ -206,18 +219,26 @@ export default function Dashboard() {
     }
   };
 
+  /* ---------------------------------------------------
+     DELETE BIKE
+  --------------------------------------------------- */
   const handleDeleteBike = async (bikeId) => {
     if (!window.confirm("Delete this bike listing?")) return;
+
     try {
       await deleteBike(bikeId);
       toast.success("Bike deleted.");
-      setBikes((prev) => prev.filter((item) => item.bike_id !== bikeId));
+
+      setBikes((prev) => prev.filter((item) => item.bikeId !== bikeId));
     } catch (err) {
-      console.error("Delete bike failed", err);
+      console.error("Failed to delete bike", err);
       toast.error("Failed to delete bike.");
     }
   };
 
+  /* ---------------------------------------------------
+     START EDIT BIKE
+  --------------------------------------------------- */
   const handleStartEditBike = (bike) => {
     setEditingBike(bike);
     setEditBikeForm({
@@ -226,13 +247,14 @@ export default function Dashboard() {
     });
   };
 
+  /* ---------------------------------------------------
+     SAVE BIKE EDIT
+  --------------------------------------------------- */
   const handleSaveBikeEdit = async () => {
     if (!editingBike) return;
-    const bikeId = editingBike.bike_id;
-    if (!bikeId) {
-      toast.error("Invalid bike id.");
-      return;
-    }
+
+    const bikeId = editingBike.bikeId;
+    if (!bikeId) return toast.error("Invalid bike id.");
 
     setSavingBike(true);
     try {
@@ -241,30 +263,41 @@ export default function Dashboard() {
         prize: Number(editBikeForm.prize),
         status: editBikeForm.status,
       };
+
       await updateBike(bikeId, payload);
       toast.success("Bike updated.");
+
       setBikes((prev) =>
         prev.map((item) =>
-          item.bike_id === bikeId ? { ...item, ...payload } : item
+          item.bikeId === bikeId ? { ...item, ...payload } : item
         )
       );
+
       setEditingBike(null);
     } catch (err) {
-      console.error("Update bike failed", err);
+      console.error("Bike update failed", err);
       toast.error("Failed to update bike.");
     } finally {
       setSavingBike(false);
     }
   };
 
+  /* ---------------------------------------------------
+     NAVIGATION
+  --------------------------------------------------- */
   const handleSellProduct = () => {
     navigate("/sellfrom");
   };
 
+  /* ---------------------------------------------------
+     RENDER UI
+  --------------------------------------------------- */
   return (
     <div className="container mx-auto px-4 py-6">
+
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Dashboard</h1>
+
         <button
           onClick={handleSellProduct}
           className="px-5 py-2 bg-green-600 text-white rounded-md"
@@ -273,7 +306,7 @@ export default function Dashboard() {
         </button>
       </div>
 
-      {/* Status summary cards for current category */}
+      {/* Status Summary Cards */}
       <div className="mb-6">
         <DashboardStats
           listings={
@@ -288,6 +321,7 @@ export default function Dashboard() {
         />
       </div>
 
+      {/* Category Buttons */}
       <div className="flex gap-3 mb-6">
         {["LAPTOPS", "BIKES", "CARS", "MOBILES"].map((cat) => (
           <button
@@ -304,6 +338,7 @@ export default function Dashboard() {
         ))}
       </div>
 
+      {/* LAPTOPS */}
       {activeCategory === "LAPTOPS" && (
         <MyListings
           listings={laptops}
@@ -312,6 +347,7 @@ export default function Dashboard() {
         />
       )}
 
+      {/* BIKES */}
       {activeCategory === "BIKES" && (
         <BikeTable
           items={bikes}
@@ -320,10 +356,13 @@ export default function Dashboard() {
         />
       )}
 
+      {/* CARS */}
       {activeCategory === "CARS" && <CarTable items={cars} />}
 
+      {/* MOBILES */}
       {activeCategory === "MOBILES" && <MobileTable items={mobiles} />}
 
+      {/* Laptop Edit Modal */}
       {editingLaptop && (
         <EditLaptopModal
           form={editLaptopForm}
@@ -335,6 +374,7 @@ export default function Dashboard() {
         />
       )}
 
+      {/* Bike Edit Modal */}
       {editingBike && (
         <EditBikeModal
           bike={editingBike}
@@ -349,8 +389,9 @@ export default function Dashboard() {
   );
 }
 
-/* ----- BIKE / CAR / MOBILE / LAYOUT COMPONENTS: can be below or in separate files ----- */
-
+/* ---------------------------------------------------
+   BIKE TABLE COMPONENT
+--------------------------------------------------- */
 function BikeTable({ items, onEdit, onDelete }) {
   return (
     <CategoryWrapper title="Bike Listings">
@@ -369,35 +410,39 @@ function BikeTable({ items, onEdit, onDelete }) {
             </tr>
           </thead>
           <tbody>
-            {items.map((b) => (
-              <tr key={b.bike_id} className="border-b hover:bg-gray-50">
-                <td className="p-2 border">{b.brand}</td>
-                <td className="p-2 border">{b.model}</td>
-                <td className="p-2 border">{b.variant}</td>
-                <td className="p-2 border">{b.prize}</td>
-                <td className="p-2 border">{b.status}</td>
-                <td className="p-2 flex gap-2 border">
-                  <button
-                    onClick={() => onEdit(b)}
-                    className="px-3 py-1 bg-blue-600 text-white rounded-md text-sm"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => onDelete(b.bike_id)}
-                    className="px-3 py-1 bg-red-600 text-white rounded-md text-sm"
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {items.map((b) => {
+              const key = b.bikeId ?? b.id ?? b.bike_id; // ⭐ robust key
+              return (
+                <tr key={key} className="border-b hover:bg-gray-50">
+                  <td className="p-2 border">{b.brand}</td>
+                  <td className="p-2 border">{b.model}</td>
+                  <td className="p-2 border">{b.variant}</td>
+                  <td className="p-2 border">₹ {b.prize}</td>
+                  <td className="p-2 border">{b.status}</td>
+                  <td className="p-2 flex gap-2 border">
+                    <button
+                      onClick={() => onEdit(b)}
+                      className="px-3 py-1 bg-blue-600 text-white rounded-md text-sm"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => onDelete(b.bikeId ?? b.id ?? b.bike_id)}
+                      className="px-3 py-1 bg-red-600 text-white rounded-md text-sm"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       )}
     </CategoryWrapper>
   );
 }
+
 
 function CarTable({ items }) {
   return (
@@ -418,7 +463,7 @@ function CarTable({ items }) {
               <tr key={c.carId}>
                 <td className="p-2 border">{c.brand}</td>
                 <td className="p-2 border">{c.model}</td>
-                <td className="p-2 border">{c.price}</td>
+                <td className="p-2 border">₹ {c.price}</td>
               </tr>
             ))}
           </tbody>
@@ -447,7 +492,7 @@ function MobileTable({ items }) {
               <tr key={m.mobileId}>
                 <td className="p-2 border">{m.brand}</td>
                 <td className="p-2 border">{m.model}</td>
-                <td className="p-2 border">{m.price}</td>
+                <td className="p-2 border">₹ {m.price}</td>
               </tr>
             ))}
           </tbody>
@@ -466,6 +511,9 @@ function CategoryWrapper({ title, children }) {
   );
 }
 
+/* ---------------------------------------------------
+   EDIT LAPTOP MODAL
+--------------------------------------------------- */
 function EditLaptopModal({ listing, form, onChange, onClose, onSave, saving }) {
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
@@ -514,6 +562,7 @@ function EditLaptopModal({ listing, form, onChange, onClose, onSave, saving }) {
           >
             Cancel
           </button>
+
           <button
             type="button"
             onClick={onSave}
@@ -528,6 +577,9 @@ function EditLaptopModal({ listing, form, onChange, onClose, onSave, saving }) {
   );
 }
 
+/* ---------------------------------------------------
+   EDIT BIKE MODAL
+--------------------------------------------------- */
 function EditBikeModal({ bike, form, onChange, onClose, onSave, saving }) {
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
@@ -576,6 +628,7 @@ function EditBikeModal({ bike, form, onChange, onClose, onSave, saving }) {
           >
             Cancel
           </button>
+
           <button
             type="button"
             onClick={onSave}

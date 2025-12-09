@@ -14,6 +14,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaUserCircle } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
+import Img from "../assets/Images/img.png";  // adjust relative path as needed
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -38,9 +39,8 @@ export default function Navbar() {
       {/* TOP BAR */}
       <div className="container mx-auto px-4 flex items-center h-16 md:h-18 lg:h-20">
         {/* Logo */}
-        <Link to="/" className="flex items-center mr-2 md:mr-4">
-          <img src="/logo.png" alt="KharidoBhecho" className="h-7 w-auto md:h-8 lg:h-9" />
-        </Link>
+        <img src={Img} alt="KharidoBhecho" className="h-7 w-auto md:h-8 lg:h-9" />
+
 
         {/* Search (desktop) */}
         <div className="hidden md:flex flex-1 items-center">
