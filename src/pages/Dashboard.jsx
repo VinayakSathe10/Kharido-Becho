@@ -516,3 +516,68 @@ function MobileTable({ items, onEdit, onDelete }) {
     </CategoryWrapper>
   );
 }
+
+// import { useState } from "react";
+// import { useNavigate } from "react-router-dom";
+
+// import DashboardStats from "../components/Dashboard/DashboardStats";
+// import CategoryTabs from "../components/Dashboard/CategoryTabs";
+
+// import LaptopSection from "../components/Dashboard/LaptopSection";
+// import BikeSection from "../components/Dashboard/BikeSection";
+// import CarSection from "../components/Dashboard/CarSection";
+// import MobileSection from "../components/Dashboard/MobileSection";
+
+// export default function Dashboard() {
+//   const navigate = useNavigate();
+//   const [activeCategory, setActiveCategory] = useState("LAPTOPS");
+
+//   // ✅ REQUIRED FOR STATS
+//   const [laptops, setLaptops] = useState([]);
+//   const [bikes, setBikes] = useState([]);
+//   const [cars, setCars] = useState([]);
+//   const [mobiles, setMobiles] = useState([]);
+
+//   console.log("✅ Dashboard mounted");
+
+//   return (
+//     <div className="container mx-auto px-4 py-6">
+//       <div className="flex justify-between items-center mb-6">
+//         <h1 className="text-3xl font-bold">Dashboard</h1>
+//         <button
+//           onClick={() => navigate("/sellfrom")}
+//           className="px-5 py-2 bg-green-600 text-white rounded-md"
+//         >
+//           + Sell Product
+//         </button>
+//       </div>
+
+//       {/* ✅ FIXED */}
+//       <DashboardStats
+//         listings={
+//           activeCategory === "LAPTOPS"
+//             ? laptops
+//             : activeCategory === "BIKES"
+//             ? bikes
+//             : activeCategory === "CARS"
+//             ? cars
+//             : mobiles
+//         }
+//       />
+
+//       <CategoryTabs
+//         activeCategory={activeCategory}
+//         onChange={setActiveCategory}
+//       />
+
+//       {activeCategory === "LAPTOPS" && (
+//         <LaptopSection onDataLoad={setLaptops} />
+//       )}
+//       {activeCategory === "BIKES" && <BikeSection onDataLoad={setBikes} />}
+//       {activeCategory === "CARS" && <CarSection onDataLoad={setCars} />}
+//       {activeCategory === "MOBILES" && (
+//         <MobileSection onDataLoad={setMobiles} />
+//       )}
+//     </div>
+//   );
+// }

@@ -1,61 +1,28 @@
-/**
- * ProtectedRoute Component
- *
- * Controls access to routes based on authentication and role requirements.
- *
- * Behavior:
- * - If `requiredRole` is null: route is accessible to any authenticated user
- * - If `requiredRole` is "BUYER": only buyers can access
- * - If `requiredRole` is "SELLER": only sellers can access
- * - If user is not authenticated: redirects to login
- * - If user doesn't have required role: redirects to home
- */
-
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
 
-/* ============================================================
-   LOADING SCREEN
-============================================================ */
-function LoadingScreen() {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
-    </div>
-  );
+const normalize = (roles = []) =>
+  roles.map((r) => r.replace(/^ROLE_/i, "").toUpperCase());
+
+function parseRoles(raw) {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [parsed];
+  } catch {
+    return raw.split(",").map((r) => r.trim());
+  }
 }
 
-/* ============================================================
-   PROTECTED ROUTE
-============================================================ */
-export default function ProtectedRoute({ children, requiredRole = null }) {
-  const { isSignedIn, isLoading, roles } = useAuth();
+export default function ProtectedRoute({ children, requiredRole }) {
+  const token = localStorage.getItem("token");
+  if (!token) return <Navigate to="/login" replace />;
 
-  // Show spinner until auth state is initialized
-  if (isLoading) {
-    return <LoadingScreen />;
-  }
-
-  /* ============================================================
-     IF NOT LOGGED IN → GO TO HOME (NOT LOGIN)
-     This FIXES the logout redirect issue.
-  ============================================================ */
-  if (!isSignedIn) {
-    return <Navigate to="/" replace />;
-  }
-
-  /* ============================================================
-     ROLE VALIDATION (if required)
-  ============================================================ */
   if (requiredRole) {
-    const hasRole = roles.includes(requiredRole);
-
-    // user doesn't have correct role → go home
-    if (!hasRole) {
+    const roles = normalize(parseRoles(localStorage.getItem("roles")));
+    if (!roles.includes(requiredRole)) {
       return <Navigate to="/" replace />;
     }
   }
 
-  // Authenticated & authorized → show the route
   return children;
 }

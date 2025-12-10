@@ -1,9 +1,4 @@
-/**
- * App.jsx - Main Application Router
- */
-
 import { Routes, Route, useLocation } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
 
 import Navbar from "./components/Layout/Navbar";
 import Footer from "./components/Layout/Footer";
@@ -18,129 +13,110 @@ import BuyBikes from "./pages/Buyer/BuyBikes";
 import BuyMobiles from "./pages/Buyer/BuyMobiles";
 import BuyLaptops from "./pages/Buyer/BuyLaptops";
 import BuyProducts from "./pages/Buyer/BuyProducts";
-import Contact from "./pages/Contact";
-import Services from "./pages/Services";
 import ProductDetail from "./pages/ProductDetail";
 import LaptopDetail from "./pages/LaptopDetail";
 
-// Auth pages
-import Login from "./components/Auth/Login ";
+// Auth
+import Login from "./components/Auth/Login";
 import Register from "./components/Auth/Register";
 import ForgetPassword from "./components/Auth/ForgetPassword";
 import ResetPassword from "./components/Auth/ResetPassword";
 
-// Buyer general chat
+// Buyer
 import BuyerChatList from "./pages/Buyer/BuyerChatList";
 import BuyerChatThread from "./pages/Buyer/BuyerChatThread";
-
-// Seller general chat
-import SellerChatList from "./components/Chat/SellerChatList";
-import SellerChatThread from "./components/Chat/SellerChatThread";
-import SellerRequestList from "./components/Chat/SellerRequestList";
-
-// Dashboard + sell
-import Dashboard from "./pages/Dashboard";
-import SellProducts from "./pages/Seller/SellProducts";
-
-// Profile
+import BuyerLaptopChatList from "./pages/Buyer/BuyerLaptopChatList";
+import LaptopChat from "./pages/LaptopChat";
 import Profile from "./components/Profile";
 
-// Laptop Chat
-import LaptopChat from "./pages/LaptopChat";
-import BuyerLaptopChatList from "./pages/Buyer/BuyerLaptopChatList";
+// Seller
+import Dashboard from "./pages/Dashboard";
+import SellProducts from "./pages/Seller/SellProducts";
+import SellerChatList from "./components/Chat/SellerChatList";
+import SellerChatThread from "./components/Chat/SellerChatThread";
 import SellerLaptopChatList from "./pages/Seller/SellerLaptopChatList";
 import SellerLaptopChatThread from "./pages/Seller/SellerLaptopChatThread";
+import SellerRequestList from "./components/Chat/SellerRequestList";
 
-function App() {
+export default function App() {
   const location = useLocation();
   const isAuthPage = ["/login", "/register", "/forget-password"].includes(
     location.pathname
   );
 
   return (
-    <AuthProvider>
+    <>
       {!isAuthPage && <Navbar />}
 
       <div className="min-h-screen pb-16 md:pb-0">
         <Routes>
-          {/* ---------------------------------------
-                PUBLIC ROUTES
-          ---------------------------------------- */}
+          {/* PUBLIC */}
           <Route
             path="/"
             element={
-              <RoleBasedRoute public={true}>
+              <RoleBasedRoute public>
                 <Home />
               </RoleBasedRoute>
             }
           />
-
           <Route
             path="/buy/products"
             element={
-              <RoleBasedRoute public={true}>
+              <RoleBasedRoute public>
                 <BuyProducts />
               </RoleBasedRoute>
             }
           />
-
           <Route
             path="/buy/cars"
             element={
-              <RoleBasedRoute public={true}>
+              <RoleBasedRoute public>
                 <BuyCars />
               </RoleBasedRoute>
             }
           />
-
           <Route
             path="/buy/bikes"
             element={
-              <RoleBasedRoute public={true}>
+              <RoleBasedRoute public>
                 <BuyBikes />
               </RoleBasedRoute>
             }
           />
-
           <Route
             path="/buy/mobiles"
             element={
-              <RoleBasedRoute public={true}>
+              <RoleBasedRoute public>
                 <BuyMobiles />
               </RoleBasedRoute>
             }
           />
-
           <Route
             path="/buy/laptops"
             element={
-              <RoleBasedRoute public={true}>
+              <RoleBasedRoute public>
                 <BuyLaptops />
               </RoleBasedRoute>
             }
           />
-
           <Route
             path="/product/:id"
             element={
-              <RoleBasedRoute public={true}>
+              <RoleBasedRoute public>
                 <ProductDetail />
               </RoleBasedRoute>
             }
           />
-
           <Route
             path="/laptop/:id"
             element={
-              <RoleBasedRoute public={true}>
+              <RoleBasedRoute public>
                 <LaptopDetail />
               </RoleBasedRoute>
             }
           />
 
-          {/* ---------------------------------------
-                BUYER ROUTES
-          ---------------------------------------- */}
+          {/* BUYER */}
           <Route
             path="/buyer/chat"
             element={
@@ -149,7 +125,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/buyer/chat/:id"
             element={
@@ -158,7 +133,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/buyer/laptop-chats"
             element={
@@ -167,7 +141,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/chat/laptop/:bookingId"
             element={
@@ -176,7 +149,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/profile"
             element={
@@ -186,9 +158,7 @@ function App() {
             }
           />
 
-          {/* ---------------------------------------
-                SELLER ROUTES
-          ---------------------------------------- */}
+          {/* SELLER */}
           <Route
             path="/dashboard"
             element={
@@ -197,8 +167,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
-          {/* SELL PRODUCT PAGE */}
           <Route
             path="/sellfrom"
             element={
@@ -207,10 +175,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
-          {/* ---------------------------------------
-                SELL PRODUCT EDIT ROUTES (ADDED)
-          ---------------------------------------- */}
           <Route
             path="/sell-laptop/:id"
             element={
@@ -219,7 +183,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/sell-bike/:id"
             element={
@@ -228,7 +191,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/sell-car/:id"
             element={
@@ -237,7 +199,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/sell-mobile/:id"
             element={
@@ -246,8 +207,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
-          {/* Seller Chats */}
           <Route
             path="/seller/chat"
             element={
@@ -256,7 +215,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/seller/chat/:id"
             element={
@@ -265,7 +223,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/seller/chat/laptops"
             element={
@@ -274,7 +231,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/seller/chat/laptop/:bookingId"
             element={
@@ -283,7 +239,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/seller/requests"
             element={
@@ -293,9 +248,7 @@ function App() {
             }
           />
 
-          {/* ---------------------------------------
-                AUTH ROUTES
-          ---------------------------------------- */}
+          {/* AUTH */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forget-password" element={<ForgetPassword />} />
@@ -305,8 +258,6 @@ function App() {
 
       {!isAuthPage && <BottomBar />}
       {!isAuthPage && <Footer />}
-    </AuthProvider>
+    </>
   );
 }
-
-export default App;

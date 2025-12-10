@@ -48,9 +48,10 @@ export const deleteLaptop = async (laptopId) => {
   return res.data;
 };
 
+// ✅ FIXED — MULTIPLE IMAGE UPLOAD
 export const uploadLaptopPhoto = async (laptopId, file) => {
   const formData = new FormData();
-  formData.append("files", file);
+  formData.append("files", file); // backend expects "files"
   formData.append("laptopId", laptopId);
 
   const res = await apiClient.post("/api/laptop-photo/upload", formData, {
@@ -61,6 +62,7 @@ export const uploadLaptopPhoto = async (laptopId, file) => {
 
   return res.data;
 };
+
 // import apiClient from "./apiClient";
 
 // // ----------------------

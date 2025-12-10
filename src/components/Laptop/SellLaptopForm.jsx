@@ -1,17 +1,608 @@
+// import { useState, useEffect } from "react";
+// import { useNavigate, useLocation } from "react-router-dom";
+// import { toast } from "react-toastify";
+// import {
+//   createLaptop,
+//   updateLaptop,
+//   getLaptopById,
+//   uploadLaptopPhoto,
+// } from "../../store/services/laptopServices";
+// import useSellerId from "../../pages/useSellerId";
+
+// export default function SellLaptopForm({ productId }) {
+//   const navigate = useNavigate();
+//   const location = useLocation();
+//   const {
+//     sellerId,
+//     loading: sellerLoading,
+//     error: sellerError,
+//   } = useSellerId();
+
+//   const isEditMode = !!productId || location.state?.mode === "edit";
+//   const editItem = location.state?.item;
+
+//   const [formData, setFormData] = useState({
+//     serialNumber: "",
+//     dealer: "",
+//     model: "",
+//     brand: "",
+//     price: "",
+//     warrantyInYear: 1,
+//     processor: "",
+//     processorBrand: "",
+//     memoryType: "",
+//     screenSize: "",
+//     colour: "",
+//     ram: "",
+//     storage: "",
+//     battery: "",
+//     batteryLife: "",
+//     graphicsCard: "",
+//     graphicBrand: "",
+//     weight: "",
+//     manufacturer: "",
+//     usbPorts: "",
+//     status: "ACTIVE",
+//   });
+
+//   const [photoFiles, setPhotoFiles] = useState([]);
+//   const [createdLaptopId, setCreatedLaptopId] = useState(productId || null);
+//   const [addLoading, setAddLoading] = useState(false);
+//   const [photoLoading, setPhotoLoading] = useState(false);
+//   const [loading, setLoading] = useState(false);
+
+//   // Fetch laptop data in edit mode
+//   useEffect(() => {
+//     const fetchLaptopData = async () => {
+//       if (!isEditMode || !productId) return;
+
+//       try {
+//         setLoading(true);
+//         const laptop = await getLaptopById(productId);
+
+//         if (laptop) {
+//           setFormData({
+//             serialNumber: laptop.serialNumber || "",
+//             dealer: laptop.dealer || "",
+//             model: laptop.model || "",
+//             brand: laptop.brand || "",
+//             price: laptop.price || "",
+//             warrantyInYear: laptop.warrantyInYear || 1,
+//             processor: laptop.processor || "",
+//             processorBrand: laptop.processorBrand || "",
+//             memoryType: laptop.memoryType || "",
+//             screenSize: laptop.screenSize || "",
+//             colour: laptop.colour || "",
+//             ram: laptop.ram || "",
+//             storage: laptop.storage || "",
+//             battery: laptop.battery || "",
+//             batteryLife: laptop.batteryLife || "",
+//             graphicsCard: laptop.graphicsCard || "",
+//             graphicBrand: laptop.graphicBrand || "",
+//             weight: laptop.weight || "",
+//             manufacturer: laptop.manufacturer || "",
+//             usbPorts: laptop.usbPorts || "",
+//             status: laptop.status || "ACTIVE",
+//           });
+//         }
+//       } catch (error) {
+//         console.error("Failed to fetch laptop:", error);
+//         toast.error("Failed to load laptop data");
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+
+//     // If editItem is provided in state, use it directly
+//     if (isEditMode && editItem) {
+//       setFormData({
+//         serialNumber: editItem.serialNumber || "",
+//         dealer: editItem.dealer || "",
+//         model: editItem.model || "",
+//         brand: editItem.brand || "",
+//         price: editItem.price || "",
+//         warrantyInYear: editItem.warrantyInYear || 1,
+//         processor: editItem.processor || "",
+//         processorBrand: editItem.processorBrand || "",
+//         memoryType: editItem.memoryType || "",
+//         screenSize: editItem.screenSize || "",
+//         colour: editItem.colour || "",
+//         ram: editItem.ram || "",
+//         storage: editItem.storage || "",
+//         battery: editItem.battery || "",
+//         batteryLife: editItem.batteryLife || "",
+//         graphicsCard: editItem.graphicsCard || "",
+//         graphicBrand: editItem.graphicBrand || "",
+//         weight: editItem.weight || "",
+//         manufacturer: editItem.manufacturer || "",
+//         usbPorts: editItem.usbPorts || "",
+//         status: editItem.status || "ACTIVE",
+//       });
+//     } else {
+//       fetchLaptopData();
+//     }
+//   }, [isEditMode, productId, editItem]);
+
+//   const handleChange = (e) => {
+//     setFormData({ ...formData, [e.target.name]: e.target.value });
+//   };
+
+//   const handleLaptopSubmit = async (e) => {
+//     e.preventDefault();
+
+//     if (!sellerId) {
+//       toast.error(sellerError || "Seller ID missing. Please login again.");
+//       return;
+//     }
+
+//     try {
+//       setAddLoading(true);
+//       const payload = {
+//         ...formData,
+//         price: Number(formData.price),
+//         usbPorts: Number(formData.usbPorts),
+//         warrantyInYear: Number(formData.warrantyInYear),
+//         sellerId,
+//       };
+
+//       if (isEditMode && productId) {
+//         // UPDATE MODE
+//         await updateLaptop(productId, payload);
+//         toast.success("Laptop updated successfully!");
+//         navigate("/dashboard");
+//       } else {
+//         // CREATE MODE
+//         const res = await createLaptop(payload);
+//         toast.success(res.message || "Laptop created successfully!");
+
+//         const newId =
+//           res?.data?.id ||
+//           res?.id ||
+//           res?.laptopId ||
+//           res?.message?.match(/id (\d+)/)?.[1];
+
+//         setCreatedLaptopId(newId);
+//       }
+//     } catch (error) {
+//       console.error(error);
+//       toast.error(
+//         error?.response?.data?.message ||
+//           error?.data?.message ||
+//           (isEditMode ? "Failed to update laptop" : "Failed to add laptop")
+//       );
+//     } finally {
+//       setAddLoading(false);
+//     }
+//   };
+
+//   const handlePhotoUpload = async () => {
+//     if (photoFiles.length === 0) {
+//       toast.error("Select at least one photo");
+//       return;
+//     }
+
+//     if (!createdLaptopId) {
+//       toast.error("Create laptop first");
+//       return;
+//     }
+
+//     try {
+//       setPhotoLoading(true);
+//       for (const file of photoFiles) {
+//         await uploadLaptopPhoto(createdLaptopId, file);
+//       }
+//       toast.success("All photos uploaded successfully!");
+//     } catch (err) {
+//       console.error(err);
+//       toast.error("Photo upload failed");
+//     } finally {
+//       setPhotoLoading(false);
+//     }
+//   };
+
+//   if (loading) {
+//     return (
+//       <div className="w-full max-w-3xl mx-auto p-6">
+//         <p>Loading laptop data...</p>
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <div className="w-full max-w-3xl mx-auto p-6">
+//       <h1 className="text-3xl font-bold mb-6">
+//         {isEditMode ? "Edit Laptop" : "Add Laptop"}
+//       </h1>
+//       <SellerNotice
+//         sellerId={sellerId}
+//         loading={sellerLoading}
+//         error={sellerError}
+//       />
+
+//       <form
+//         onSubmit={handleLaptopSubmit}
+//         className="grid grid-cols-1 md:grid-cols-2 gap-4"
+//       >
+//         {Object.keys(formData).map((key) =>
+//           key !== "status" ? (
+//             <div key={key} className="flex flex-col">
+//               <label className="font-semibold mb-1 capitalize">{key}</label>
+//               <input
+//                 type="text"
+//                 name={key}
+//                 value={formData[key]}
+//                 onChange={handleChange}
+//                 className="border p-2 rounded"
+//               />
+//             </div>
+//           ) : null
+//         )}
+
+//         <button
+//           type="submit"
+//           disabled={addLoading || !sellerId || sellerLoading}
+//           className="col-span-2 bg-blue-600 text-white py-3 rounded mt-4"
+//         >
+//           {addLoading
+//             ? isEditMode
+//               ? "Updating..."
+//               : "Creating..."
+//             : sellerLoading
+//             ? "Resolving seller..."
+//             : isEditMode
+//             ? "Update Laptop"
+//             : "Create Laptop"}
+//         </button>
+//       </form>
+
+//       {createdLaptopId && !isEditMode && (
+//         <div className="mt-10 border-t pt-6">
+//           <h2 className="text-xl font-bold mb-4">
+//             Upload Laptop Photos (ID: {createdLaptopId})
+//           </h2>
+
+//           <input
+//             type="file"
+//             multiple
+//             onChange={(e) => setPhotoFiles([...e.target.files])}
+//             className="mb-4"
+//           />
+
+//           {photoFiles.length > 0 && (
+//             <div className="grid grid-cols-3 gap-4 mb-4">
+//               {photoFiles.map((file, index) => (
+//                 <img
+//                   key={index}
+//                   src={URL.createObjectURL(file)}
+//                   alt="preview"
+//                   className="w-full h-32 object-cover rounded shadow"
+//                 />
+//               ))}
+//             </div>
+//           )}
+
+//           <button
+//             onClick={handlePhotoUpload}
+//             disabled={photoLoading}
+//             className="bg-green-600 text-white py-2 px-6 rounded"
+//           >
+//             {photoLoading ? "Uploading..." : "Upload Photos"}
+//           </button>
+//         </div>
+//       )}
+//     </div>
+//   );
+// }
+
+// function SellerNotice({ sellerId, loading, error }) {
+//   return (
+//     <div className="mb-4 rounded-md bg-gray-50 p-3 text-sm text-gray-700">
+//       <p>
+//         <span className="font-semibold">Seller ID:</span>{" "}
+//         {loading ? "Resolving…" : sellerId ?? "Not available"}
+//       </p>
+//       {!sellerId && !loading && (
+//         <p className="text-red-600 mt-1">
+//           {error || "Login as a seller to list laptops."}
+//         </p>
+//       )}
+//     </div>
+//   );
+// }
+
+// //    import  { useEffect, useState } from "react";
+// // import { useLocation, useParams, useNavigate } from "react-router-dom";
+// // import { toast } from "react-toastify";
+
+// // import { addLaptop, updateLaptop } from "../store/services/laptopServices";
+
+// // export default function SellLaptopForm() {
+// //   const { id } = useParams();
+// //   const location = useLocation();
+// //   const navigate = useNavigate();
+
+// //   const isEdit = location.state?.mode === "edit";
+// //   const editItem = location.state?.item;
+
+// //   const [form, setForm] = useState({
+// //     brand: "",
+// //     model: "",
+// //     price: "",
+// //     status: "ACTIVE",
+// //   });
+
+// //   /** --------------------------------------
+// //    * FILL FORM IN EDIT MODE
+// //    -------------------------------------- */
+// //   useEffect(() => {
+// //     if (isEdit && editItem) {
+// //       setForm({
+// //         brand: editItem.brand || "",
+// //         model: editItem.model || "",
+// //         price: editItem.price || 0,
+// //         status: editItem.status || "ACTIVE",
+// //       });
+// //     }
+// //   }, [isEdit, editItem]);
+
+// //   const updateField = (field, value) => {
+// //     setForm((prev) => ({ ...prev, [field]: value }));
+// //   };
+
+// //   /** --------------------------------------
+// //    * SUBMIT HANDLER
+// //    -------------------------------------- */
+// //   const handleSubmit = async (e) => {
+// //     e.preventDefault();
+
+// //     try {
+// //       if (isEdit) {
+// //         // UPDATE MODE
+// //         await updateLaptop(id, form);
+// //         toast.success("Laptop updated successfully");
+// //       } else {
+// //         // CREATE MODE
+// //         await addLaptop(form);
+// //         toast.success("Laptop added successfully");
+// //       }
+
+// //       navigate("/dashboard");
+// //     } catch (err) {
+// //       toast.error("Action failed");
+// //       console.error(err);
+// //     }
+// //   };
+
+// //   if (isEdit && !editItem) {
+// //     return (
+// //       <div className="p-6 text-center text-red-600">
+// //         Invalid edit request. No item data provided.
+// //       </div>
+// //     );
+// //   }
+
+// //   return (
+// //     <div className="container mx-auto px-5 py-6">
+// //       <h1 className="text-3xl font-bold mb-6">
+// //         {isEdit ? "Edit Laptop" : "Sell Laptop"}
+// //       </h1>
+
+// //       <form
+// //         onSubmit={handleSubmit}
+// //         className="grid grid-cols-1 md:grid-cols-2 gap-4"
+// //       >
+// //         <InputField
+// //           label="Brand"
+// //           value={form.brand}
+// //           onChange={(e) => updateField("brand", e.target.value)}
+// //           required
+// //         />
+
+// //         <InputField
+// //           label="Model"
+// //           value={form.model}
+// //           onChange={(e) => updateField("model", e.target.value)}
+// //           required
+// //         />
+
+// //         <InputField
+// //           label="Price"
+// //           type="number"
+// //           value={form.price}
+// //           onChange={(e) => updateField("price", e.target.value)}
+// //           required
+// //         />
+
+// //         <div>
+// //           <label className="block font-semibold mb-1">Status</label>
+// //           <select
+// //             value={form.status}
+// //             onChange={(e) => updateField("status", e.target.value)}
+// //             className="w-full border rounded p-2"
+// //           >
+// //             <option value="ACTIVE">ACTIVE</option>
+// //             <option value="PENDING">PENDING</option>
+// //             <option value="SOLD">SOLD</option>
+// //           </select>
+// //         </div>
+
+// //         <button
+// //           type="submit"
+// //           className="md:col-span-2 bg-indigo-600 text-white py-3 rounded font-semibold"
+// //         >
+// //           {isEdit ? "Update Laptop" : "Create Laptop Listing"}
+// //         </button>
+// //       </form>
+// //     </div>
+// //   );
+// // }
+
+// // /* ----------------------------------------
+// //    Reusable Input Component
+// // ---------------------------------------- */
+// // function InputField({ label, ...props }) {
+// //   return (
+// //     <div>
+// //       <label className="block font-semibold mb-1">{label}</label>
+// //       <input {...props} className="w-full border rounded p-2" />
+// //     </div>
+// //   );
+// // }
+// // import React, { useEffect, useState } from "react";
+// // import { useLocation, useParams, useNavigate } from "react-router-dom";
+// // import { toast } from "react-toastify";
+
+// // import { addLaptop, updateLaptop } from "../store/services/laptopServices";
+
+// // export default function SellLaptopForm() {
+// //   const { id } = useParams();
+// //   const location = useLocation();
+// //   const navigate = useNavigate();
+
+// //   const isEdit = location.state?.mode === "edit";
+// //   const editItem = location.state?.item;
+
+// //   const [form, setForm] = useState({
+// //     brand: "",
+// //     model: "",
+// //     price: "",
+// //     status: "ACTIVE",
+// //   });
+
+// //   /** --------------------------------------
+// //    * FILL FORM IN EDIT MODE
+// //    -------------------------------------- */
+// //   useEffect(() => {
+// //     if (isEdit && editItem) {
+// //       setForm({
+// //         brand: editItem.brand || "",
+// //         model: editItem.model || "",
+// //         price: editItem.price || 0,
+// //         status: editItem.status || "ACTIVE",
+// //       });
+// //     }
+// //   }, [isEdit, editItem]);
+
+// //   const updateField = (field, value) => {
+// //     setForm((prev) => ({ ...prev, [field]: value }));
+// //   };
+
+// //   /** --------------------------------------
+// //    * SUBMIT HANDLER
+// //    -------------------------------------- */
+// //   const handleSubmit = async (e) => {
+// //     e.preventDefault();
+
+// //     try {
+// //       if (isEdit) {
+// //         // UPDATE MODE
+// //         await updateLaptop(id, form);
+// //         toast.success("Laptop updated successfully");
+// //       } else {
+// //         // CREATE MODE
+// //         await addLaptop(form);
+// //         toast.success("Laptop added successfully");
+// //       }
+
+// //       navigate("/dashboard");
+// //     } catch (err) {
+// //       toast.error("Action failed");
+// //       console.error(err);
+// //     }
+// //   };
+
+// //   if (isEdit && !editItem) {
+// //     return (
+// //       <div className="p-6 text-center text-red-600">
+// //         Invalid edit request. No item data provided.
+// //       </div>
+// //     );
+// //   }
+
+// //   return (
+// //     <div className="container mx-auto px-5 py-6">
+// //       <h1 className="text-3xl font-bold mb-6">
+// //         {isEdit ? "Edit Laptop" : "Sell Laptop"}
+// //       </h1>
+
+// //       <form
+// //         onSubmit={handleSubmit}
+// //         className="grid grid-cols-1 md:grid-cols-2 gap-4"
+// //       >
+// //         <InputField
+// //           label="Brand"
+// //           value={form.brand}
+// //           onChange={(e) => updateField("brand", e.target.value)}
+// //           required
+// //         />
+
+// //         <InputField
+// //           label="Model"
+// //           value={form.model}
+// //           onChange={(e) => updateField("model", e.target.value)}
+// //           required
+// //         />
+
+// //         <InputField
+// //           label="Price"
+// //           type="number"
+// //           value={form.price}
+// //           onChange={(e) => updateField("price", e.target.value)}
+// //           required
+// //         />
+
+// //         <div>
+// //           <label className="block font-semibold mb-1">Status</label>
+// //           <select
+// //             value={form.status}
+// //             onChange={(e) => updateField("status", e.target.value)}
+// //             className="w-full border rounded p-2"
+// //           >
+// //             <option value="ACTIVE">ACTIVE</option>
+// //             <option value="PENDING">PENDING</option>
+// //             <option value="SOLD">SOLD</option>
+// //           </select>
+// //         </div>
+
+// //         <button
+// //           type="submit"
+// //           className="md:col-span-2 bg-indigo-600 text-white py-3 rounded font-semibold"
+// //         >
+// //           {isEdit ? "Update Laptop" : "Create Laptop Listing"}
+// //         </button>
+// //       </form>
+// //     </div>
+// //   );
+// // }
+
+// // /* ----------------------------------------
+// //    Reusable Input Component
+// // ---------------------------------------- */
+// // function InputField({ label, ...props }) {
+// //   return (
+// //     <div>
+// //       <label className="block font-semibold mb-1">{label}</label>
+// //       <input {...props} className="w-full border rounded p-2" />
+// //     </div>
+// //   );
+// // }
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
+
 import {
   createLaptop,
   updateLaptop,
   getLaptopById,
   uploadLaptopPhoto,
 } from "../../store/services/laptopServices";
+
 import useSellerId from "../../pages/useSellerId";
 
 export default function SellLaptopForm({ productId }) {
   const navigate = useNavigate();
   const location = useLocation();
+
   const {
     sellerId,
     loading: sellerLoading,
@@ -51,109 +642,92 @@ export default function SellLaptopForm({ productId }) {
   const [photoLoading, setPhotoLoading] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Fetch laptop data in edit mode
+  // ==================================================
+  // LOAD LAPTOP IN EDIT MODE
+  // ==================================================
   useEffect(() => {
-    const fetchLaptopData = async () => {
+    const loadLaptop = async () => {
       if (!isEditMode || !productId) return;
 
       try {
         setLoading(true);
-        const laptop = await getLaptopById(productId);
+        const data = await getLaptopById(productId);
 
-        if (laptop) {
+        if (data) {
           setFormData({
-            serialNumber: laptop.serialNumber || "",
-            dealer: laptop.dealer || "",
-            model: laptop.model || "",
-            brand: laptop.brand || "",
-            price: laptop.price || "",
-            warrantyInYear: laptop.warrantyInYear || 1,
-            processor: laptop.processor || "",
-            processorBrand: laptop.processorBrand || "",
-            memoryType: laptop.memoryType || "",
-            screenSize: laptop.screenSize || "",
-            colour: laptop.colour || "",
-            ram: laptop.ram || "",
-            storage: laptop.storage || "",
-            battery: laptop.battery || "",
-            batteryLife: laptop.batteryLife || "",
-            graphicsCard: laptop.graphicsCard || "",
-            graphicBrand: laptop.graphicBrand || "",
-            weight: laptop.weight || "",
-            manufacturer: laptop.manufacturer || "",
-            usbPorts: laptop.usbPorts || "",
-            status: laptop.status || "ACTIVE",
+            serialNumber: data.serialNumber || "",
+            dealer: data.dealer || "",
+            model: data.model || "",
+            brand: data.brand || "",
+            price: data.price || "",
+            warrantyInYear: data.warrantyInYear || 1,
+            processor: data.processor || "",
+            processorBrand: data.processorBrand || "",
+            memoryType: data.memoryType || "",
+            screenSize: data.screenSize || "",
+            colour: data.colour || "",
+            ram: data.ram || "",
+            storage: data.storage || "",
+            battery: data.battery || "",
+            batteryLife: data.batteryLife || "",
+            graphicsCard: data.graphicsCard || "",
+            graphicBrand: data.graphicBrand || "",
+            weight: data.weight || "",
+            manufacturer: data.manufacturer || "",
+            usbPorts: data.usbPorts || "",
+            status: data.status || "ACTIVE",
           });
         }
-      } catch (error) {
-        console.error("Failed to fetch laptop:", error);
-        toast.error("Failed to load laptop data");
+      } catch {
+        toast.error("Failed to load laptop details");
       } finally {
         setLoading(false);
       }
     };
 
-    // If editItem is provided in state, use it directly
     if (isEditMode && editItem) {
-      setFormData({
-        serialNumber: editItem.serialNumber || "",
-        dealer: editItem.dealer || "",
-        model: editItem.model || "",
-        brand: editItem.brand || "",
-        price: editItem.price || "",
-        warrantyInYear: editItem.warrantyInYear || 1,
-        processor: editItem.processor || "",
-        processorBrand: editItem.processorBrand || "",
-        memoryType: editItem.memoryType || "",
-        screenSize: editItem.screenSize || "",
-        colour: editItem.colour || "",
-        ram: editItem.ram || "",
-        storage: editItem.storage || "",
-        battery: editItem.battery || "",
-        batteryLife: editItem.batteryLife || "",
-        graphicsCard: editItem.graphicsCard || "",
-        graphicBrand: editItem.graphicBrand || "",
-        weight: editItem.weight || "",
-        manufacturer: editItem.manufacturer || "",
-        usbPorts: editItem.usbPorts || "",
-        status: editItem.status || "ACTIVE",
-      });
+      setFormData((prev) => ({ ...prev, ...editItem }));
     } else {
-      fetchLaptopData();
+      loadLaptop();
     }
   }, [isEditMode, productId, editItem]);
 
+  // ==================================================
+  // FORM CHANGE
+  // ==================================================
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // ==================================================
+  // CREATE / UPDATE LAPTOP
+  // ==================================================
   const handleLaptopSubmit = async (e) => {
     e.preventDefault();
 
     if (!sellerId) {
-      toast.error(sellerError || "Seller ID missing. Please login again.");
+      toast.error(sellerError || "Seller ID missing");
       return;
     }
 
+    const payload = {
+      ...formData,
+      price: Number(formData.price),
+      usbPorts: Number(formData.usbPorts),
+      warrantyInYear: Number(formData.warrantyInYear),
+      sellerId,
+    };
+
     try {
       setAddLoading(true);
-      const payload = {
-        ...formData,
-        price: Number(formData.price),
-        usbPorts: Number(formData.usbPorts),
-        warrantyInYear: Number(formData.warrantyInYear),
-        sellerId,
-      };
 
       if (isEditMode && productId) {
-        // UPDATE MODE
         await updateLaptop(productId, payload);
-        toast.success("Laptop updated successfully!");
+        toast.success("Laptop updated successfully");
         navigate("/dashboard");
       } else {
-        // CREATE MODE
         const res = await createLaptop(payload);
-        toast.success(res.message || "Laptop created successfully!");
+        toast.success("Laptop created successfully");
 
         const newId =
           res?.data?.id ||
@@ -163,47 +737,49 @@ export default function SellLaptopForm({ productId }) {
 
         setCreatedLaptopId(newId);
       }
-    } catch (error) {
-      console.error(error);
-      toast.error(
-        error?.response?.data?.message ||
-          error?.data?.message ||
-          (isEditMode ? "Failed to update laptop" : "Failed to add laptop")
-      );
+    } catch {
+      toast.error("Failed to save laptop");
     } finally {
       setAddLoading(false);
     }
   };
 
-  const handlePhotoUpload = async () => {
-    if (photoFiles.length === 0) {
-      toast.error("Select at least one photo");
-      return;
-    }
+  // ==================================================
+  // MULTIPLE IMAGE HANDLING
+  // ==================================================
+  const handleImageSelect = (e) => {
+    const files = Array.from(e.target.files);
+    setPhotoFiles((prev) => [...prev, ...files]);
+  };
 
-    if (!createdLaptopId) {
-      toast.error("Create laptop first");
-      return;
-    }
+  const removeImage = (index) => {
+    setPhotoFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handlePhotoUpload = async () => {
+    if (!createdLaptopId) return toast.error("Create laptop first");
+    if (!photoFiles.length) return toast.error("Select at least one image");
 
     try {
       setPhotoLoading(true);
       for (const file of photoFiles) {
         await uploadLaptopPhoto(createdLaptopId, file);
       }
-      toast.success("All photos uploaded successfully!");
-    } catch (err) {
-      console.error(err);
-      toast.error("Photo upload failed");
+      toast.success("All images uploaded successfully");
+    } catch {
+      toast.error("Image upload failed");
     } finally {
       setPhotoLoading(false);
     }
   };
 
+  // ==================================================
+  // UI
+  // ==================================================
   if (loading) {
     return (
       <div className="w-full max-w-3xl mx-auto p-6">
-        <p>Loading laptop data...</p>
+        Loading laptop details...
       </div>
     );
   }
@@ -213,48 +789,46 @@ export default function SellLaptopForm({ productId }) {
       <h1 className="text-3xl font-bold mb-6">
         {isEditMode ? "Edit Laptop" : "Add Laptop"}
       </h1>
-      <SellerNotice
-        sellerId={sellerId}
-        loading={sellerLoading}
-        error={sellerError}
-      />
 
+      {/* FORM */}
       <form
         onSubmit={handleLaptopSubmit}
         className="grid grid-cols-1 md:grid-cols-2 gap-4"
       >
-        {Object.keys(formData).map((key) =>
-          key !== "status" ? (
-            <div key={key} className="flex flex-col">
-              <label className="font-semibold mb-1 capitalize">{key}</label>
-              <input
-                type="text"
-                name={key}
-                value={formData[key]}
-                onChange={handleChange}
-                className="border p-2 rounded"
-              />
-            </div>
-          ) : null
+        {Object.keys(formData).map(
+          (key) =>
+            key !== "status" && (
+              <div key={key}>
+                <label className="block font-semibold mb-1 capitalize">
+                  {key}
+                </label>
+                <input
+                  type="text"
+                  name={key}
+                  value={formData[key]}
+                  onChange={handleChange}
+                  className="border p-2 rounded w-full"
+                />
+              </div>
+            )
         )}
 
         <button
           type="submit"
-          disabled={addLoading || !sellerId || sellerLoading}
+          disabled={addLoading}
           className="col-span-2 bg-blue-600 text-white py-3 rounded mt-4"
         >
           {addLoading
             ? isEditMode
               ? "Updating..."
               : "Creating..."
-            : sellerLoading
-            ? "Resolving seller..."
             : isEditMode
             ? "Update Laptop"
             : "Create Laptop"}
         </button>
       </form>
 
+      {/* IMAGE UPLOAD */}
       {createdLaptopId && !isEditMode && (
         <div className="mt-10 border-t pt-6">
           <h2 className="text-xl font-bold mb-4">
@@ -263,20 +837,29 @@ export default function SellLaptopForm({ productId }) {
 
           <input
             type="file"
+            accept="image/*"
             multiple
-            onChange={(e) => setPhotoFiles([...e.target.files])}
+            onChange={handleImageSelect}
             className="mb-4"
           />
 
           {photoFiles.length > 0 && (
-            <div className="grid grid-cols-3 gap-4 mb-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
               {photoFiles.map((file, index) => (
-                <img
-                  key={index}
-                  src={URL.createObjectURL(file)}
-                  alt="preview"
-                  className="w-full h-32 object-cover rounded shadow"
-                />
+                <div key={index} className="relative">
+                  <img
+                    src={URL.createObjectURL(file)}
+                    alt="preview"
+                    className="w-full h-32 object-cover rounded shadow"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeImage(index)}
+                    className="absolute top-1 right-1 bg-red-600 text-white text-xs px-2 py-1 rounded"
+                  >
+                    ✕
+                  </button>
+                </div>
               ))}
             </div>
           )}
@@ -284,7 +867,7 @@ export default function SellLaptopForm({ productId }) {
           <button
             onClick={handlePhotoUpload}
             disabled={photoLoading}
-            className="bg-green-600 text-white py-2 px-6 rounded"
+            className="bg-green-600 text-white px-6 py-2 rounded"
           >
             {photoLoading ? "Uploading..." : "Upload Photos"}
           </button>
@@ -293,296 +876,3 @@ export default function SellLaptopForm({ productId }) {
     </div>
   );
 }
-
-function SellerNotice({ sellerId, loading, error }) {
-  return (
-    <div className="mb-4 rounded-md bg-gray-50 p-3 text-sm text-gray-700">
-      <p>
-        <span className="font-semibold">Seller ID:</span>{" "}
-        {loading ? "Resolving…" : sellerId ?? "Not available"}
-      </p>
-      {!sellerId && !loading && (
-        <p className="text-red-600 mt-1">
-          {error || "Login as a seller to list laptops."}
-        </p>
-      )}
-    </div>
-  );
-}
-
-//    import  { useEffect, useState } from "react";
-// import { useLocation, useParams, useNavigate } from "react-router-dom";
-// import { toast } from "react-toastify";
-
-// import { addLaptop, updateLaptop } from "../store/services/laptopServices";
-
-// export default function SellLaptopForm() {
-//   const { id } = useParams();
-//   const location = useLocation();
-//   const navigate = useNavigate();
-
-//   const isEdit = location.state?.mode === "edit";
-//   const editItem = location.state?.item;
-
-//   const [form, setForm] = useState({
-//     brand: "",
-//     model: "",
-//     price: "",
-//     status: "ACTIVE",
-//   });
-
-//   /** --------------------------------------
-//    * FILL FORM IN EDIT MODE
-//    -------------------------------------- */
-//   useEffect(() => {
-//     if (isEdit && editItem) {
-//       setForm({
-//         brand: editItem.brand || "",
-//         model: editItem.model || "",
-//         price: editItem.price || 0,
-//         status: editItem.status || "ACTIVE",
-//       });
-//     }
-//   }, [isEdit, editItem]);
-
-//   const updateField = (field, value) => {
-//     setForm((prev) => ({ ...prev, [field]: value }));
-//   };
-
-//   /** --------------------------------------
-//    * SUBMIT HANDLER
-//    -------------------------------------- */
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-
-//     try {
-//       if (isEdit) {
-//         // UPDATE MODE
-//         await updateLaptop(id, form);
-//         toast.success("Laptop updated successfully");
-//       } else {
-//         // CREATE MODE
-//         await addLaptop(form);
-//         toast.success("Laptop added successfully");
-//       }
-
-//       navigate("/dashboard");
-//     } catch (err) {
-//       toast.error("Action failed");
-//       console.error(err);
-//     }
-//   };
-
-//   if (isEdit && !editItem) {
-//     return (
-//       <div className="p-6 text-center text-red-600">
-//         Invalid edit request. No item data provided.
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <div className="container mx-auto px-5 py-6">
-//       <h1 className="text-3xl font-bold mb-6">
-//         {isEdit ? "Edit Laptop" : "Sell Laptop"}
-//       </h1>
-
-//       <form
-//         onSubmit={handleSubmit}
-//         className="grid grid-cols-1 md:grid-cols-2 gap-4"
-//       >
-//         <InputField
-//           label="Brand"
-//           value={form.brand}
-//           onChange={(e) => updateField("brand", e.target.value)}
-//           required
-//         />
-
-//         <InputField
-//           label="Model"
-//           value={form.model}
-//           onChange={(e) => updateField("model", e.target.value)}
-//           required
-//         />
-
-//         <InputField
-//           label="Price"
-//           type="number"
-//           value={form.price}
-//           onChange={(e) => updateField("price", e.target.value)}
-//           required
-//         />
-
-//         <div>
-//           <label className="block font-semibold mb-1">Status</label>
-//           <select
-//             value={form.status}
-//             onChange={(e) => updateField("status", e.target.value)}
-//             className="w-full border rounded p-2"
-//           >
-//             <option value="ACTIVE">ACTIVE</option>
-//             <option value="PENDING">PENDING</option>
-//             <option value="SOLD">SOLD</option>
-//           </select>
-//         </div>
-
-//         <button
-//           type="submit"
-//           className="md:col-span-2 bg-indigo-600 text-white py-3 rounded font-semibold"
-//         >
-//           {isEdit ? "Update Laptop" : "Create Laptop Listing"}
-//         </button>
-//       </form>
-//     </div>
-//   );
-// }
-
-// /* ----------------------------------------
-//    Reusable Input Component
-// ---------------------------------------- */
-// function InputField({ label, ...props }) {
-//   return (
-//     <div>
-//       <label className="block font-semibold mb-1">{label}</label>
-//       <input {...props} className="w-full border rounded p-2" />
-//     </div>
-//   );
-// }
-// import React, { useEffect, useState } from "react";
-// import { useLocation, useParams, useNavigate } from "react-router-dom";
-// import { toast } from "react-toastify";
-
-// import { addLaptop, updateLaptop } from "../store/services/laptopServices";
-
-// export default function SellLaptopForm() {
-//   const { id } = useParams();
-//   const location = useLocation();
-//   const navigate = useNavigate();
-
-//   const isEdit = location.state?.mode === "edit";
-//   const editItem = location.state?.item;
-
-//   const [form, setForm] = useState({
-//     brand: "",
-//     model: "",
-//     price: "",
-//     status: "ACTIVE",
-//   });
-
-//   /** --------------------------------------
-//    * FILL FORM IN EDIT MODE
-//    -------------------------------------- */
-//   useEffect(() => {
-//     if (isEdit && editItem) {
-//       setForm({
-//         brand: editItem.brand || "",
-//         model: editItem.model || "",
-//         price: editItem.price || 0,
-//         status: editItem.status || "ACTIVE",
-//       });
-//     }
-//   }, [isEdit, editItem]);
-
-//   const updateField = (field, value) => {
-//     setForm((prev) => ({ ...prev, [field]: value }));
-//   };
-
-//   /** --------------------------------------
-//    * SUBMIT HANDLER
-//    -------------------------------------- */
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-
-//     try {
-//       if (isEdit) {
-//         // UPDATE MODE
-//         await updateLaptop(id, form);
-//         toast.success("Laptop updated successfully");
-//       } else {
-//         // CREATE MODE
-//         await addLaptop(form);
-//         toast.success("Laptop added successfully");
-//       }
-
-//       navigate("/dashboard");
-//     } catch (err) {
-//       toast.error("Action failed");
-//       console.error(err);
-//     }
-//   };
-
-//   if (isEdit && !editItem) {
-//     return (
-//       <div className="p-6 text-center text-red-600">
-//         Invalid edit request. No item data provided.
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <div className="container mx-auto px-5 py-6">
-//       <h1 className="text-3xl font-bold mb-6">
-//         {isEdit ? "Edit Laptop" : "Sell Laptop"}
-//       </h1>
-
-//       <form
-//         onSubmit={handleSubmit}
-//         className="grid grid-cols-1 md:grid-cols-2 gap-4"
-//       >
-//         <InputField
-//           label="Brand"
-//           value={form.brand}
-//           onChange={(e) => updateField("brand", e.target.value)}
-//           required
-//         />
-
-//         <InputField
-//           label="Model"
-//           value={form.model}
-//           onChange={(e) => updateField("model", e.target.value)}
-//           required
-//         />
-
-//         <InputField
-//           label="Price"
-//           type="number"
-//           value={form.price}
-//           onChange={(e) => updateField("price", e.target.value)}
-//           required
-//         />
-
-//         <div>
-//           <label className="block font-semibold mb-1">Status</label>
-//           <select
-//             value={form.status}
-//             onChange={(e) => updateField("status", e.target.value)}
-//             className="w-full border rounded p-2"
-//           >
-//             <option value="ACTIVE">ACTIVE</option>
-//             <option value="PENDING">PENDING</option>
-//             <option value="SOLD">SOLD</option>
-//           </select>
-//         </div>
-
-//         <button
-//           type="submit"
-//           className="md:col-span-2 bg-indigo-600 text-white py-3 rounded font-semibold"
-//         >
-//           {isEdit ? "Update Laptop" : "Create Laptop Listing"}
-//         </button>
-//       </form>
-//     </div>
-//   );
-// }
-
-// /* ----------------------------------------
-//    Reusable Input Component
-// ---------------------------------------- */
-// function InputField({ label, ...props }) {
-//   return (
-//     <div>
-//       <label className="block font-semibold mb-1">{label}</label>
-//       <input {...props} className="w-full border rounded p-2" />
-//     </div>
-//   );
-// }
