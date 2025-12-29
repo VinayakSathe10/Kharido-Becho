@@ -1,35 +1,45 @@
 import { useCallback, useEffect, useState } from "react";
 import {
-  getBikeBookingChatMessages,
+  getBookingsForBuyer,
   sendBikeBookingMessage,
 } from "../store/services/bikeBookingServices";
 
-/**
- * Reusable chat hook bound to a specific bike booking.
- *
- * Responsibilities:
- * - Load chat history for a booking
- * - Provide sendMessage with optimistic UI
- * - Expose loading / sending / error + live messages
- */
 export default function useChat(bookingId) {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(null);
 
-  // Initial load of chat history
+  // Load initial chat history when bookingId changes
   useEffect(() => {
-    if (!bookingId) return;
+    if (!bookingId) {
+      setMessages([]);
+      setError(null);
+      return;
+    }
 
     let cancelled = false;
 
     const load = async () => {
       try {
         setLoading(true);
-        const data = await getBikeBookingChatMessages(bookingId);
+
+        const buyerId = Number(localStorage.getItem("buyerId"));
+        const data = buyerId ? await getBookingsForBuyer(buyerId) : [];
+
         if (!cancelled) {
-          setMessages(Array.isArray(data) ? data : []);
+          const booking = Array.isArray(data)
+            ? data.find((b) => b.id === Number(bookingId))
+            : null;
+          const conversation = booking?.conversation || [];
+
+          // Map to format expected by ChatModal (content instead of message)
+          const formattedMessages = conversation.map(msg => ({
+            ...msg,
+            content: msg.message, // Map 'message' from API to 'content' for UI
+          }));
+
+          setMessages(formattedMessages);
           setError(null);
         }
       } catch (err) {
@@ -38,9 +48,7 @@ export default function useChat(bookingId) {
           setError(err);
         }
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        if (!cancelled) setLoading(false);
       }
     };
 
@@ -53,11 +61,12 @@ export default function useChat(bookingId) {
 
   // Optimistic send
   const sendMessage = useCallback(
-    async (content, senderType) => {
+    async (content, senderType, extra = {}) => {
       const trimmed = (content || "").trim();
       if (!bookingId || !trimmed) return;
 
       const tempId = `temp-${Date.now()}`;
+
       const optimisticMessage = {
         id: tempId,
         bookingId,
@@ -65,36 +74,50 @@ export default function useChat(bookingId) {
         senderType,
         createdAt: new Date().toISOString(),
         optimistic: true,
+        ...extra,
       };
 
       setMessages((prev) => [...prev, optimisticMessage]);
       setSending(true);
 
       try {
-        const saved = await sendBikeBookingMessage(bookingId, {
-          content: trimmed,
-          senderType,
-        });
+        // Prepare payload with 'message' key matching the backend expectation
+        const payload = {
+          message: trimmed
+        };
 
-        // Replace optimistic message with server version (if any)
-        if (saved) {
+        const saved = await sendBikeBookingMessage(
+          bookingId,
+          payload
+        );
+
+        const savedMessage = {
+          ...saved,
+          content: saved?.message || trimmed
+        };
+
+
+        if (saved && saved.id) {
           setMessages((prev) =>
-            prev.map((msg) => (msg.id === tempId ? saved : msg))
+            prev.map((msg) => (msg.id === tempId ? savedMessage : msg))
           );
         } else {
-          // Just mark the optimistic one as confirmed
           setMessages((prev) =>
-            prev.map((msg) =>
-              msg.id === tempId ? { ...msg, optimistic: false } : msg
+            prev.map((m) =>
+              m.id === tempId ? { ...m, optimistic: false } : m
             )
           );
         }
+
         setError(null);
+        return saved;
       } catch (err) {
         console.error("Failed to send chat message", err);
         setError(err);
-        // Remove the optimistic message on failure
+
+        // Remove optimistic message if send fails
         setMessages((prev) => prev.filter((msg) => msg.id !== tempId));
+
         throw err;
       } finally {
         setSending(false);
@@ -112,5 +135,3 @@ export default function useChat(bookingId) {
     setMessages,
   };
 }
-
-

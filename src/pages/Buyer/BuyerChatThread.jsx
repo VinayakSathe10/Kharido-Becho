@@ -1,36 +1,37 @@
 import React from "react";
-import { useParams, useNavigate } from "react-router-dom";
 import { MdArrowBack } from "react-icons/md";
 import ChatModal from "../../components/Chat/ChatModal";
 
-const BuyerChatThreadScreen = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
-
-  const bookingId = id;
-
+const BuyerChatThread = ({
+  bookingId,
+  chatType = "CAR",
+  chatTitle,
+  chatSubtitle,
+  onBack,
+}) => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      {/* HEADER */}
       <div className="bg-white border-b border-border px-4 py-3 flex items-center relative z-50">
-        <button
-          onClick={() => navigate("/buyer/chat")}
-          className="mr-4 p-2"
-          type="button"
-        >
+        <button onClick={onBack} className="mr-4 p-2" type="button">
           <MdArrowBack className="text-2xl text-text-primary" />
         </button>
+
         <h1 className="text-xl font-bold text-text-primary">Chat</h1>
       </div>
 
-      {/* Full-screen modal for buyer chat bound to this booking */}
+      {/* CHAT */}
       <ChatModal
-        isOpen
-        onClose={() => navigate("/buyer/chat")}
+        isOpen={true} // Always open in thread view
+        onClose={onBack} // Close maps to back
         bookingId={bookingId}
         senderType="BUYER"
+        chatType={chatType}
+        chatTitle={chatTitle}
+        chatSubtitle={chatSubtitle}
       />
     </div>
   );
 };
 
-export default BuyerChatThreadScreen;
+export default BuyerChatThread;

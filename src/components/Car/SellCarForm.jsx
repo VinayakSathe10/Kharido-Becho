@@ -322,6 +322,8 @@
 //   );
 // }
 
+
+
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -594,7 +596,8 @@ export default function SellCarForm({ productId }) {
         sellerId={sellerId}
         loading={sellerLoading}
         error={sellerError}
-      />
+      /> 123 Main Street,<br />
+                  Pune, Maharashtra – 400001
 
       {/* MAIN FORM */}
       <form

@@ -177,284 +177,368 @@
 
 // export default SellerRequestListScreen;
 
+// import React, { useEffect, useState } from "react";
+// import { toast } from "react-toastify";
+
+// import useSellerId from "../../pages/useSellerId";
+
+// import {
+//   getPendingBikeBookings,
+//   rejectBikeBooking,
+//   completeBikeBooking,
+// } from "../../store/services/bikeBookingServices";
+
+// import {
+//   getLaptopBookingByBuyer,
+//   getLaptopBookingById,
+//   updateLaptopBookingStatus,
+//   completeLaptopBooking,
+// } from "../../store/services/laptopBookingServices";
+
+// const SellerRequestListScreen = () => {
+//   const {
+//     sellerId,
+//     loading: sellerLoading,
+//     error: sellerError,
+//   } = useSellerId();
+
+//   const buyerId = Number(localStorage.getItem("buyerId"));
+//   const sellerUserId = Number(localStorage.getItem("userId"));
+
+//   const [pendingBikeBookings, setPendingBikeBookings] = useState([]);
+//   const [buyerLaptopBookings, setBuyerLaptopBookings] = useState([]);
+//   const [sellerLaptopBookings, setSellerLaptopBookings] = useState([]);
+
+//   const [loading, setLoading] = useState(false);
+//   const [actionId, setActionId] = useState(null);
+
+//   // ============================
+//   // LOAD ALL THREE DATA SOURCES
+//   // ============================
+//   useEffect(() => {
+//     const load = async () => {
+//       try {
+//         setLoading(true);
+
+//         // 1️⃣ Load Bike Pending (Seller)
+//         if (sellerId) {
+//           const bikeData = await getPendingBikeBookings();
+//           const filtered = bikeData.filter(
+//             (b) => b.sellerId === sellerId || b.bike?.sellerId === sellerId
+//           );
+//           setPendingBikeBookings(filtered);
+//         }
+
+//         // 2️⃣ Load Laptop Bookings (Buyer)
+//         if (buyerId) {
+//           const data = await getLaptopBookingByBuyer(buyerId);
+//           setBuyerLaptopBookings(Array.isArray(data) ? data : [data]);
+//         }
+
+//         // 3️⃣ Load Laptop Bookings (Seller)
+//         // Strategy: Loop buyer bookings, filter those where sellerId = current seller
+//         if (sellerId) {
+//           let sellerRequestList = [];
+
+//           const requestIds = buyerLaptopBookings.map(
+//             (booking) => booking.laptopBookingId
+//           );
+
+//           for (let id of requestIds) {
+//             const record = await getLaptopBookingById(id);
+//             if (record.sellerId === sellerId) {
+//               sellerRequestList.push(record);
+//             }
+//           }
+
+//           setSellerLaptopBookings(sellerRequestList);
+//         }
+//       } catch (err) {
+//         toast.error("Error loading requests");
+//         console.error(err);
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+
+//     load();
+//   }, [sellerId, buyerId]);
+
+//   // ============================================
+//   // SELLER ACTIONS FOR LAPTOP BOOKINGS
+//   // ============================================
+//   const handleLaptopAccept = async (bookingId) => {
+//     try {
+//       setActionId(bookingId);
+//       await updateLaptopBookingStatus(bookingId, "ACCEPTED");
+//       toast.success("Laptop booking accepted");
+
+//       setSellerLaptopBookings((prev) =>
+//         prev.map((b) =>
+//           b.laptopBookingId === bookingId ? { ...b, status: "ACCEPTED" } : b
+//         )
+//       );
+//     } catch (err) {
+//       toast.error("Failed to accept laptop booking");
+//       console.error(err);
+//     } finally {
+//       setActionId(null);
+//     }
+//   };
+
+//   const handleLaptopComplete = async (bookingId) => {
+//     try {
+//       setActionId(bookingId);
+//       await completeLaptopBooking(bookingId);
+//       toast.success("Laptop marked as SOLD");
+
+//       setSellerLaptopBookings((prev) =>
+//         prev.filter((b) => b.laptopBookingId !== bookingId)
+//       );
+//     } catch (err) {
+//       toast.error("Failed to mark laptop as sold");
+//       console.error(err);
+//     } finally {
+//       setActionId(null);
+//     }
+//   };
+
+//   // ============================================
+//   // SELLER BIKE ACTIONS
+//   // ============================================
+//   const handleRejectBike = async (booking) => {
+//     const bookingId = booking?.id ?? booking?.bikeBookingId;
+//     try {
+//       setActionId(bookingId);
+//       await rejectBikeBooking(bookingId);
+//       toast.success("Bike booking rejected");
+
+//       setPendingBikeBookings((prev) =>
+//         prev.filter((b) => (b.id ?? b.bikeBookingId) !== bookingId)
+//       );
+//     } catch (err) {
+//       toast.error("Error rejecting bike booking");
+//     } finally {
+//       setActionId(null);
+//     }
+//   };
+
+//   const handleCompleteBike = async (booking) => {
+//     const bookingId = booking?.id ?? booking?.bikeBookingId;
+//     try {
+//       setActionId(bookingId);
+//       await completeBikeBooking(bookingId);
+//       toast.success("Bike marked Sold");
+
+//       setPendingBikeBookings((prev) =>
+//         prev.filter((b) => (b.id ?? b.bikeBookingId) !== bookingId)
+//       );
+//     } catch (err) {
+//       toast.error("Error completing bike booking");
+//     } finally {
+//       setActionId(null);
+//     }
+//   };
+
+//   // ============================================
+//   // UI
+//   // ============================================
+//   return (
+//     <div className="min-h-screen bg-gray-50 p-4">
+//       <h1 className="text-2xl font-bold mb-4">All Buyer & Seller Requests</h1>
+
+//       {loading && <p className="text-gray-500">Loading...</p>}
+
+//       {/* ========================
+//           1️⃣ SELLER - BIKE 
+//       ======================== */}
+//       <h2 className="text-xl font-semibold mb-3">
+//         Pending Bike Requests (Seller)
+//       </h2>
+
+//       {pendingBikeBookings.length === 0 ? (
+//         <p className="text-gray-400 mb-6">No pending bike requests.</p>
+//       ) : (
+//         pendingBikeBookings.map((booking) => (
+//           <div
+//             key={booking.id ?? booking.bikeBookingId}
+//             className="bg-white p-4 rounded shadow mb-4"
+//           >
+//             <h3 className="font-semibold">
+//               {booking.bike?.brand} {booking.bike?.model}
+//             </h3>
+//             <p className="text-sm text-gray-600">
+//               Buyer: {booking.buyer?.user?.firstName}
+//             </p>
+
+//             <div className="flex gap-2 mt-3">
+//               <button
+//                 className="px-3 py-1 border rounded"
+//                 onClick={() => handleRejectBike(booking)}
+//               >
+//                 Reject
+//               </button>
+
+//               <button
+//                 className="px-3 py-1 bg-green-600 text-white rounded"
+//                 onClick={() => handleCompleteBike(booking)}
+//               >
+//                 Mark Sold
+//               </button>
+//             </div>
+//           </div>
+//         ))
+//       )}
+
+//       <hr className="my-8" />
+
+//       {/* ========================
+//           2️⃣ BUYER - LAPTOP 
+//       ======================== */}
+//       <h2 className="text-xl font-semibold mb-3">Laptop Requests (Buyer)</h2>
+
+//       {!buyerId ? (
+//         <p className="text-gray-400">Login as buyer to view laptop requests.</p>
+//       ) : buyerLaptopBookings.length === 0 ? (
+//         <p className="text-gray-400">No laptop booking requests.</p>
+//       ) : (
+//         buyerLaptopBookings.map((booking) => (
+//           <div
+//             key={booking.laptopBookingId}
+//             className="bg-white p-4 rounded shadow mb-4"
+//           >
+//             <h3 className="font-semibold">Laptop ID: {booking.laptopId}</h3>
+//             <p className="text-sm">Status: {booking.status}</p>
+//             <p className="text-sm">Booking Date: {booking.bookingDate}</p>
+//           </div>
+//         ))
+//       )}
+
+//       <hr className="my-8" />
+
+//       {/* ========================
+//           3️⃣ SELLER - LAPTOP 
+//       ======================== */}
+//       <h2 className="text-xl font-semibold mb-3">Laptop Requests (Seller)</h2>
+
+//       {sellerLaptopBookings.length === 0 ? (
+//         <p className="text-gray-400">No laptop booking requests.</p>
+//       ) : (
+//         sellerLaptopBookings.map((booking) => (
+//           <div
+//             key={booking.laptopBookingId}
+//             className="bg-white p-4 rounded shadow mb-4"
+//           >
+//             <h3 className="font-semibold">
+//               Laptop Request #{booking.laptopBookingId}
+//             </h3>
+//             <p className="text-sm">Laptop ID: {booking.laptopId}</p>
+//             <p className="text-sm">Status: {booking.status}</p>
+
+//             <div className="flex gap-2 mt-3">
+//               <button
+//                 className="px-3 py-1 border rounded"
+//                 onClick={() => handleLaptopAccept(booking.laptopBookingId)}
+//               >
+//                 Accept
+//               </button>
+
+//               <button
+//                 className="px-3 py-1 bg-green-600 text-white rounded"
+//                 onClick={() => handleLaptopComplete(booking.laptopBookingId)}
+//               >
+//                 Mark Sold
+//               </button>
+//             </div>
+//           </div>
+//         ))
+//       )}
+//     </div>
+//   );
+// };
+
+// export default SellerRequestListScreen;
+
+
+
+
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
-import useSellerId from "../../pages/useSellerId";
+import { getPendingBikeBookings } from "../../store/services/bikeBookingServices";
 
-import {
-  getPendingBikeBookings,
-  rejectBikeBooking,
-  completeBikeBooking,
-} from "../../store/services/bikeBookingServices";
+const SellerChatList = () => {
+  const navigate = useNavigate();
+  const sellerId = Number(localStorage.getItem("sellerId"));
 
-import {
-  getLaptopBookingByBuyer,
-  getLaptopBookingById,
-  updateLaptopBookingStatus,
-  completeLaptopBooking,
-} from "../../store/services/laptopBookingServices";
+  const [chats, setChats] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-const SellerRequestListScreen = () => {
-  const {
-    sellerId,
-    loading: sellerLoading,
-    error: sellerError,
-  } = useSellerId();
-
-  const buyerId = Number(localStorage.getItem("buyerId"));
-  const sellerUserId = Number(localStorage.getItem("userId"));
-
-  const [pendingBikeBookings, setPendingBikeBookings] = useState([]);
-  const [buyerLaptopBookings, setBuyerLaptopBookings] = useState([]);
-  const [sellerLaptopBookings, setSellerLaptopBookings] = useState([]);
-
-  const [loading, setLoading] = useState(false);
-  const [actionId, setActionId] = useState(null);
-
-  // ============================
-  // LOAD ALL THREE DATA SOURCES
-  // ============================
   useEffect(() => {
-    const load = async () => {
+    const loadPending = async () => {
       try {
         setLoading(true);
 
-        // 1️⃣ Load Bike Pending (Seller)
-        if (sellerId) {
-          const bikeData = await getPendingBikeBookings();
-          const filtered = bikeData.filter(
-            (b) => b.sellerId === sellerId || b.bike?.sellerId === sellerId
-          );
-          setPendingBikeBookings(filtered);
-        }
+        const data = await getPendingBikeBookings();
 
-        // 2️⃣ Load Laptop Bookings (Buyer)
-        if (buyerId) {
-          const data = await getLaptopBookingByBuyer(buyerId);
-          setBuyerLaptopBookings(Array.isArray(data) ? data : [data]);
-        }
+        const formatted = data.map((b) => ({
+          bookingId: b.bookingId,
+          title: `${b.bike?.brand || ""} ${b.bike?.model || ""}`,
+          buyerName: `${b.buyer?.user?.firstName || ""} ${
+            b.buyer?.user?.lastName || ""
+          }`,
+          status: b.status || b.bookingStatus || "PENDING",
+        }));
 
-        // 3️⃣ Load Laptop Bookings (Seller)
-        // Strategy: Loop buyer bookings, filter those where sellerId = current seller
-        if (sellerId) {
-          let sellerRequestList = [];
-
-          const requestIds = buyerLaptopBookings.map(
-            (booking) => booking.laptopBookingId
-          );
-
-          for (let id of requestIds) {
-            const record = await getLaptopBookingById(id);
-            if (record.sellerId === sellerId) {
-              sellerRequestList.push(record);
-            }
-          }
-
-          setSellerLaptopBookings(sellerRequestList);
-        }
+        setChats(formatted);
       } catch (err) {
-        toast.error("Error loading requests");
-        console.error(err);
+        console.error("Failed to load pending bike chats", err);
+        toast.error("Failed to load pending bike chats");
       } finally {
         setLoading(false);
       }
     };
 
-    load();
-  }, [sellerId, buyerId]);
+    loadPending();
+  }, [sellerId]);
 
-  // ============================================
-  // SELLER ACTIONS FOR LAPTOP BOOKINGS
-  // ============================================
-  const handleLaptopAccept = async (bookingId) => {
-    try {
-      setActionId(bookingId);
-      await updateLaptopBookingStatus(bookingId, "ACCEPTED");
-      toast.success("Laptop booking accepted");
-
-      setSellerLaptopBookings((prev) =>
-        prev.map((b) =>
-          b.laptopBookingId === bookingId ? { ...b, status: "ACCEPTED" } : b
-        )
-      );
-    } catch (err) {
-      toast.error("Failed to accept laptop booking");
-      console.error(err);
-    } finally {
-      setActionId(null);
-    }
-  };
-
-  const handleLaptopComplete = async (bookingId) => {
-    try {
-      setActionId(bookingId);
-      await completeLaptopBooking(bookingId);
-      toast.success("Laptop marked as SOLD");
-
-      setSellerLaptopBookings((prev) =>
-        prev.filter((b) => b.laptopBookingId !== bookingId)
-      );
-    } catch (err) {
-      toast.error("Failed to mark laptop as sold");
-      console.error(err);
-    } finally {
-      setActionId(null);
-    }
-  };
-
-  // ============================================
-  // SELLER BIKE ACTIONS
-  // ============================================
-  const handleRejectBike = async (booking) => {
-    const bookingId = booking?.id ?? booking?.bikeBookingId;
-    try {
-      setActionId(bookingId);
-      await rejectBikeBooking(bookingId);
-      toast.success("Bike booking rejected");
-
-      setPendingBikeBookings((prev) =>
-        prev.filter((b) => (b.id ?? b.bikeBookingId) !== bookingId)
-      );
-    } catch (err) {
-      toast.error("Error rejecting bike booking");
-    } finally {
-      setActionId(null);
-    }
-  };
-
-  const handleCompleteBike = async (booking) => {
-    const bookingId = booking?.id ?? booking?.bikeBookingId;
-    try {
-      setActionId(bookingId);
-      await completeBikeBooking(bookingId);
-      toast.success("Bike marked Sold");
-
-      setPendingBikeBookings((prev) =>
-        prev.filter((b) => (b.id ?? b.bikeBookingId) !== bookingId)
-      );
-    } catch (err) {
-      toast.error("Error completing bike booking");
-    } finally {
-      setActionId(null);
-    }
-  };
-
-  // ============================================
-  // UI
-  // ============================================
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <h1 className="text-2xl font-bold mb-4">All Buyer & Seller Requests</h1>
+    <div className="min-h-screen bg-background">
+      <div className="bg-white border-b px-4 py-3">
+        <h1 className="text-xl font-bold">Pending Bike Requests</h1>
+      </div>
 
-      {loading && <p className="text-gray-500">Loading...</p>}
-
-      {/* ========================
-          1️⃣ SELLER - BIKE 
-      ======================== */}
-      <h2 className="text-xl font-semibold mb-3">
-        Pending Bike Requests (Seller)
-      </h2>
-
-      {pendingBikeBookings.length === 0 ? (
-        <p className="text-gray-400 mb-6">No pending bike requests.</p>
-      ) : (
-        pendingBikeBookings.map((booking) => (
-          <div
-            key={booking.id ?? booking.bikeBookingId}
-            className="bg-white p-4 rounded shadow mb-4"
-          >
-            <h3 className="font-semibold">
-              {booking.bike?.brand} {booking.bike?.model}
-            </h3>
-            <p className="text-sm text-gray-600">
-              Buyer: {booking.buyer?.user?.firstName}
-            </p>
-
-            <div className="flex gap-2 mt-3">
-              <button
-                className="px-3 py-1 border rounded"
-                onClick={() => handleRejectBike(booking)}
-              >
-                Reject
-              </button>
-
-              <button
-                className="px-3 py-1 bg-green-600 text-white rounded"
-                onClick={() => handleCompleteBike(booking)}
-              >
-                Mark Sold
-              </button>
-            </div>
+      <div className="p-4">
+        {loading ? (
+          <p className="text-center text-gray-500">Loading...</p>
+        ) : chats.length === 0 ? (
+          <div className="text-center py-12 text-gray-400">
+            <p>No pending bike requests</p>
           </div>
-        ))
-      )}
-
-      <hr className="my-8" />
-
-      {/* ========================
-          2️⃣ BUYER - LAPTOP 
-      ======================== */}
-      <h2 className="text-xl font-semibold mb-3">Laptop Requests (Buyer)</h2>
-
-      {!buyerId ? (
-        <p className="text-gray-400">Login as buyer to view laptop requests.</p>
-      ) : buyerLaptopBookings.length === 0 ? (
-        <p className="text-gray-400">No laptop booking requests.</p>
-      ) : (
-        buyerLaptopBookings.map((booking) => (
-          <div
-            key={booking.laptopBookingId}
-            className="bg-white p-4 rounded shadow mb-4"
-          >
-            <h3 className="font-semibold">Laptop ID: {booking.laptopId}</h3>
-            <p className="text-sm">Status: {booking.status}</p>
-            <p className="text-sm">Booking Date: {booking.bookingDate}</p>
-          </div>
-        ))
-      )}
-
-      <hr className="my-8" />
-
-      {/* ========================
-          3️⃣ SELLER - LAPTOP 
-      ======================== */}
-      <h2 className="text-xl font-semibold mb-3">Laptop Requests (Seller)</h2>
-
-      {sellerLaptopBookings.length === 0 ? (
-        <p className="text-gray-400">No laptop booking requests.</p>
-      ) : (
-        sellerLaptopBookings.map((booking) => (
-          <div
-            key={booking.laptopBookingId}
-            className="bg-white p-4 rounded shadow mb-4"
-          >
-            <h3 className="font-semibold">
-              Laptop Request #{booking.laptopBookingId}
-            </h3>
-            <p className="text-sm">Laptop ID: {booking.laptopId}</p>
-            <p className="text-sm">Status: {booking.status}</p>
-
-            <div className="flex gap-2 mt-3">
-              <button
-                className="px-3 py-1 border rounded"
-                onClick={() => handleLaptopAccept(booking.laptopBookingId)}
+        ) : (
+          <div className="space-y-3">
+            {chats.map((c) => (
+              <div
+                key={c.bookingId}
+                onClick={() => navigate(`/seller/chat/${c.bookingId}`)}
+                className="bg-white border rounded-lg p-4 cursor-pointer hover:bg-gray-50"
               >
-                Accept
-              </button>
-
-              <button
-                className="px-3 py-1 bg-green-600 text-white rounded"
-                onClick={() => handleLaptopComplete(booking.laptopBookingId)}
-              >
-                Mark Sold
-              </button>
-            </div>
+                <h2 className="font-semibold text-gray-900">{c.title}</h2>
+                <p className="text-sm text-gray-600 mt-1">
+                  Buyer: {c.buyerName}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Status: {c.status}
+                </p>
+              </div>
+            ))}
           </div>
-        ))
-      )}
+        )}
+      </div>
     </div>
   );
 };
 
-export default SellerRequestListScreen;
+export default SellerChatList;
+

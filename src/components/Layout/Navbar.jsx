@@ -1,19 +1,22 @@
+
 // import React, { useState } from "react";
 // import { Link, useNavigate } from "react-router-dom";
 // import { FaUserCircle } from "react-icons/fa";
 // import { useAuth } from "../../context/AuthContext";
 // import { logoutUser } from "../../store/services/authServices";
 // import { toast } from "react-toastify";
+// import axios from "axios";
 // import logo from "../../assets/logo.png";
 
 // export default function Navbar() {
 //   const navigate = useNavigate();
-//   const { isSignedIn, roles, setIsSignedIn, setRoles } = useAuth();
+
+//   // ONLY use values that exist in AuthContext
+//   const { isSignedIn, roles, signOut } = useAuth();
 
 //   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 //   const [location, setLocation] = useState("India");
 
-//   // Determine user roles
 //   const isSeller = roles.includes("SELLER");
 //   const isBuyer = roles.includes("BUYER") || roles.includes("USER");
 
@@ -22,15 +25,30 @@
 //     setMobileMenuOpen(false);
 //   };
 
-//   // ⭐ LOGOUT HANDLER
+//   // ✅ FIXED LOGOUT HANDLER
+//   // const handleLogout = async () => {
+//   //   try {
+//   //     await logoutUser(); // API call
+
+//   //     delete axios.defaults.headers.common["Authorization"];
+
+//   //     await signOut(); // IMPORTANT — resets AuthContext correctly
+
+//   //     toast.success("Logged out successfully");
+//   //     navigate("/login", { replace: true });
+//   //   } catch (error) {
+//   //     toast.error("Logout failed");
+//   //   }
+//   // };
 //   const handleLogout = async () => {
 //     try {
-//       await logoutUser();
-//       setIsSignedIn(false);
-//       setRoles([]);
+//       await logoutUser(); // API logout
+//       await signOut(); // Context logout
+
 //       toast.success("Logged out successfully");
-//       navigate("/login");
-//     } catch (error) {
+
+//       navigate("/", { replace: true }); //  Go to Home instead of Login
+//     } catch (err) {
 //       toast.error("Logout failed");
 //     }
 //   };
@@ -39,16 +57,16 @@
 //     <nav className="bg-white shadow sticky top-0 z-50">
 //       {/* TOP BAR */}
 //       <div className="container mx-auto px-4 flex items-center h-16 md:h-18 lg:h-20">
-//         {/* Logo */}
+//         {/* LOGO */}
 //         <Link to="/" className="flex items-center mr-2 md:mr-4">
 //           <img
-//             src="/logo.png"
-//             alt="KharidoBhecho"
+//             src={logo}
+//             alt="KharidoBhecho Logo"
 //             className="h-7 w-auto md:h-8 lg:h-9"
 //           />
 //         </Link>
 
-//         {/* Search (desktop) */}
+//         {/* SEARCH BOX - DESKTOP */}
 //         <div className="hidden md:flex flex-1 items-center">
 //           <input
 //             type="text"
@@ -60,14 +78,14 @@
 //           </button>
 //         </div>
 
-//         {/* RIGHT ACTIONS (DESKTOP) */}
+//         {/* RIGHT SIDE - DESKTOP */}
 //         <div className="hidden sm:flex items-center space-x-4 ml-4">
 //           {/* Wishlist */}
 //           <button className="text-gray-600 hover:text-gray-800 text-lg">
 //             ♡
 //           </button>
 
-//           {/* SELL button */}
+//           {/* SELL BUTTON */}
 //           {isSeller ? (
 //             <Link
 //               to="/dashboard"
@@ -84,7 +102,7 @@
 //             </button>
 //           )}
 
-//           {/* PROFILE ICON */}
+//           {/* PROFILE + LOGOUT */}
 //           {isSignedIn ? (
 //             <>
 //               <button
@@ -94,7 +112,6 @@
 //                 <FaUserCircle />
 //               </button>
 
-//               {/* LOGOUT BUTTON */}
 //               <button
 //                 onClick={handleLogout}
 //                 className="text-red-600 font-semibold hover:underline ml-2"
@@ -112,9 +129,9 @@
 //           )}
 //         </div>
 
-//         {/* MOBILE TOP ACTIONS */}
+//         {/* MOBILE MENU BUTTONS */}
 //         <div className="flex sm:hidden items-center gap-3 ml-auto">
-//           {/* SELL (mobile) */}
+//           {/* SELL - MOBILE */}
 //           {isSeller ? (
 //             <Link
 //               to="/dashboard"
@@ -131,7 +148,7 @@
 //             </button>
 //           )}
 
-//           {/* PROFILE ICON MOBILE */}
+//           {/* PROFILE - MOBILE */}
 //           {isSignedIn && (
 //             <button
 //               onClick={() => navigate(isSeller ? "/dashboard" : "/profile")}
@@ -141,7 +158,7 @@
 //             </button>
 //           )}
 
-//           {/* Hamburger */}
+//           {/* MENU TOGGLE */}
 //           <button
 //             onClick={() => setMobileMenuOpen((prev) => !prev)}
 //             className="p-2 rounded-md border border-gray-200 text-gray-700"
@@ -165,10 +182,10 @@
 //         </div>
 //       </div>
 
-//       {/* DESKTOP LINKS ROW */}
-//       <div className="bg-gray-50 border-t relative hidden md:block">
+//       {/* DESKTOP CATEGORY LINKS */}
+//       <div className="bg-gray-50 border-t hidden md:block">
 //         <div className="container mx-auto px-4 h-12 flex items-center space-x-6 text-sm">
-//           {/* Buyer/Guest categories */}
+//           {/* BUYER LINKS */}
 //           {!isSeller && (
 //             <>
 //               <button
@@ -177,28 +194,39 @@
 //               >
 //                 Cars
 //               </button>
+
 //               <button
 //                 onClick={() => handleNavigate("/buy/bikes")}
 //                 className="hover:text-blue-600"
 //               >
 //                 Bikes
 //               </button>
+
 //               <button
 //                 onClick={() => handleNavigate("/buy/mobiles")}
 //                 className="hover:text-blue-600"
 //               >
 //                 Mobiles
 //               </button>
+
 //               <button
 //                 onClick={() => handleNavigate("/buy/laptops")}
 //                 className="hover:text-blue-600"
 //               >
 //                 Laptops
 //               </button>
+
+//               {/* ✅ ADD THIS LINE */}
+//               <button
+//                 onClick={() => handleNavigate("/buyer/chat")}
+//                 className="hover:text-blue-600"
+//               >
+//                 Chat
+//               </button>
 //             </>
 //           )}
 
-//           {/* Seller links */}
+//           {/* SELLER LINKS */}
 //           {isSeller && (
 //             <>
 //               <button
@@ -222,7 +250,6 @@
 //             </>
 //           )}
 
-//           {/* DATE */}
 //           <span className="ml-auto text-gray-500 text-sm">
 //             {new Date().toLocaleDateString("en-GB", {
 //               day: "2-digit",
@@ -283,7 +310,7 @@
 //               )}
 //             </div>
 
-//             {/* LOGOUT in MOBILE */}
+//             {/* LOGOUT MOBILE */}
 //             {isSignedIn && (
 //               <button
 //                 onClick={() => {
@@ -306,6 +333,9 @@
 //     </nav>
 //   );
 // }
+
+
+
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaUserCircle } from "react-icons/fa";
@@ -332,21 +362,6 @@ export default function Navbar() {
     setMobileMenuOpen(false);
   };
 
-  // ✅ FIXED LOGOUT HANDLER
-  // const handleLogout = async () => {
-  //   try {
-  //     await logoutUser(); // API call
-
-  //     delete axios.defaults.headers.common["Authorization"];
-
-  //     await signOut(); // IMPORTANT — resets AuthContext correctly
-
-  //     toast.success("Logged out successfully");
-  //     navigate("/login", { replace: true });
-  //   } catch (error) {
-  //     toast.error("Logout failed");
-  //   }
-  // };
   const handleLogout = async () => {
     try {
       await logoutUser(); // API logout
@@ -354,7 +369,7 @@ export default function Navbar() {
 
       toast.success("Logged out successfully");
 
-      navigate("/", { replace: true }); //  Go to Home instead of Login
+      navigate("/", { replace: true }); // Go to Home instead of Login
     } catch (err) {
       toast.error("Logout failed");
     }
@@ -409,6 +424,16 @@ export default function Navbar() {
             </button>
           )}
 
+          {/* REQUEST BUTTON - BUYERS ONLY */}
+          {isBuyer && (
+            <button
+              onClick={() => navigate("/buyer/chat")}
+              className="bg-green-200 hover:bg-green-500 text-gray-900 font-semibold py-2 px-4 rounded-md text-sm"
+            >
+              Requests
+            </button>
+          )}
+
           {/* PROFILE + LOGOUT */}
           {isSignedIn ? (
             <>
@@ -452,6 +477,16 @@ export default function Navbar() {
               disabled
             >
               SELL
+            </button>
+          )}
+
+          {/* REQUEST - MOBILE (Buyers only) */}
+          {isBuyer && (
+            <button
+              onClick={() => handleNavigate("/buyer/chat")}
+              className="bg-green-200 hover:bg-green-500 text-gray-900 font-semibold py-1.5 px-3 rounded-md text-xs"
+            >
+              Requests
             </button>
           )}
 
@@ -501,24 +536,31 @@ export default function Navbar() {
               >
                 Cars
               </button>
+
               <button
                 onClick={() => handleNavigate("/buy/bikes")}
                 className="hover:text-blue-600"
               >
                 Bikes
               </button>
+
               <button
                 onClick={() => handleNavigate("/buy/mobiles")}
                 className="hover:text-blue-600"
               >
                 Mobiles
               </button>
+
               <button
                 onClick={() => handleNavigate("/buy/laptops")}
                 className="hover:text-blue-600"
               >
                 Laptops
               </button>
+
+           
+
+              
             </>
           )}
 
@@ -587,6 +629,12 @@ export default function Navbar() {
                   </button>
                   <button onClick={() => handleNavigate("/buy/laptops")}>
                     Laptops
+                  </button>
+                  <button onClick={() => handleNavigate("/buyer/chat")}>
+                    Requests
+                  </button>
+                  <button onClick={() => handleNavigate("/buyer/chat")}>
+                    Chat
                   </button>
                 </>
               )}

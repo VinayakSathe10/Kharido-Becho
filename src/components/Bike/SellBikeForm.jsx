@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import ImageUploader from "../common/ImageUploader";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import useSellerId from "../../pages/useSellerId";
 import {
@@ -10,7 +11,7 @@ import {
 } from "../../store/services/bikeServices";
 
 const initialForm = {
-  prize: "",
+  price: "",
   brand: "",
   model: "",
   variant: "",
@@ -24,67 +25,43 @@ const initialForm = {
   status: "ACTIVE",
 };
 
-export default function SellBikeForm({ productId }) {
+export default function SellBikeForm({ productId: propProductId }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { id: paramId } = useParams();
+
+  // Use prop if available, otherwise fall back to url param
+  const bikeIdToUse = propProductId || paramId;
+
   const {
     sellerId,
     loading: sellerLoading,
     error: sellerError,
   } = useSellerId();
 
-  const isEditMode = !!productId || location.state?.mode === "edit";
+  const isEditMode = !!bikeIdToUse || location.state?.mode === "edit";
   const editItem = location.state?.item;
 
   const [form, setForm] = useState(initialForm);
+  const [errors, setErrors] = useState({});
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
   const [isLoading, setIsLoading] = useState(false);
-  const [bikeId, setBikeId] = useState(productId || null);
+  const [bikeId, setBikeId] = useState(bikeIdToUse || null);
   const [loading, setLoading] = useState(false);
 
-  const [images, setImages] = useState([]);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadMsg, setUploadMsg] = useState("");
+
 
   // Fetch bike data in edit mode
   useEffect(() => {
-    const fetchBikeData = async () => {
-      if (!isEditMode || !productId) return;
+    // If not edit mode, nothing to load.
+    if (!isEditMode) return;
 
-      try {
-        setLoading(true);
-        const bike = await getBikeById(productId);
-
-        if (bike) {
-          setForm({
-            prize: bike.prize || "",
-            brand: bike.brand || "",
-            model: bike.model || "",
-            variant: bike.variant || "",
-            manufactureYear: bike.manufactureYear || "",
-            engineCC: bike.engineCC || "",
-            kilometersDriven: bike.kilometersDriven || "",
-            fuelType: bike.fuelType || "PETROL",
-            color: bike.color || "",
-            registrationNumber: bike.registrationNumber || "",
-            description: bike.description || "",
-            status: bike.status || "ACTIVE",
-          });
-        }
-      } catch (error) {
-        console.error("Failed to fetch bike:", error);
-        toast.error("Failed to load bike data");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    // If editItem is provided in state, use it directly
-    if (isEditMode && editItem) {
+    // If we have an Item passed in state, prioritize that
+    if (editItem) {
       setForm({
-        prize: editItem.prize || "",
+        price: editItem.price || editItem.prize || "",
         brand: editItem.brand || "",
         model: editItem.model || "",
         variant: editItem.variant || "",
@@ -97,16 +74,54 @@ export default function SellBikeForm({ productId }) {
         description: editItem.description || "",
         status: editItem.status || "ACTIVE",
       });
-    } else {
-      fetchBikeData();
+      // Ensure bikeId is set even if we used state item
+      if (!bikeId && (editItem.bike_id || editItem.id || editItem.bikeId)) {
+        setBikeId(editItem.bike_id || editItem.id || editItem.bikeId);
+      }
+      return;
     }
-  }, [isEditMode, productId, editItem]);
+
+    // Otherwise fetch by ID if available
+    const fetchBikeData = async () => {
+      if (!bikeIdToUse) return;
+
+      try {
+        setLoading(true);
+        const bike = await getBikeById(bikeIdToUse);
+
+        if (bike) {
+          setForm({
+            price: bike.price || bike.prize || "",
+            brand: bike.brand || "",
+            model: bike.model || "",
+            variant: bike.variant || "",
+            manufactureYear: bike.manufactureYear || "",
+            engineCC: bike.engineCC || "",
+            kilometersDriven: bike.kilometersDriven || "",
+            fuelType: bike.fuelType || "PETROL",
+            color: bike.color || "",
+            registrationNumber: bike.registrationNumber || "",
+            description: bike.description || "",
+            status: bike.status || "ACTIVE",
+          });
+          setBikeId(bikeIdToUse);
+        }
+      } catch (error) {
+        console.error("Failed to fetch bike:", error);
+        toast.error("Failed to load bike data: " + error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBikeData();
+  }, [isEditMode, bikeIdToUse, editItem]);
 
   const handleChange = (field, value) => {
     setForm((prev) => ({
       ...prev,
       [field]: [
-        "prize",
+        "price",
         "manufactureYear",
         "engineCC",
         "kilometersDriven",
@@ -114,6 +129,64 @@ export default function SellBikeForm({ productId }) {
         ? Number(value)
         : value,
     }));
+
+    // Real-time validation for description
+    if (field === "description") {
+      let descError = "";
+      if (value.length > 0 && value.length < 50) {
+        descError = "Description must be at least 50 chars";
+      } else if (value.length > 200) {
+        descError = "Description must be less than 200 chars";
+      }
+      setErrors((prev) => ({ ...prev, description: descError }));
+    } else {
+      // Clear error for other fields when modified
+      if (errors[field]) {
+        setErrors((prev) => ({ ...prev, [field]: "" }));
+      }
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    const currentYear = new Date().getFullYear();
+
+    if (!form.brand) newErrors.brand = "Brand is required";
+    if (!form.model) newErrors.model = "Model is required";
+    if (!form.variant) newErrors.variant = "Variant is required";
+
+    if (!form.manufactureYear) {
+      newErrors.manufactureYear = "Year is required";
+    } else if (
+      form.manufactureYear < 1900 ||
+      form.manufactureYear > currentYear + 1
+    ) {
+      newErrors.manufactureYear = "Invalid year";
+    }
+
+    if (!form.engineCC) newErrors.engineCC = "Engine CC is required";
+    else if (form.engineCC <= 0) newErrors.engineCC = "Must be positive";
+
+    if (!form.kilometersDriven && form.kilometersDriven !== 0)
+      newErrors.kilometersDriven = "Kilometers is required";
+    else if (form.kilometersDriven < 0)
+      newErrors.kilometersDriven = "Cannot be negative";
+
+    if (!form.fuelType) newErrors.fuelType = "Fuel Type is required";
+    if (!form.color) newErrors.color = "Color is required";
+    if (!form.registrationNumber) newErrors.registrationNumber = "Reg. Number is required";
+
+    if (!form.price) newErrors.price = "Price is required";
+    else if (form.price <= 0) newErrors.price = "Must be positive";
+
+    if (!form.description) newErrors.description = "Description is required";
+    else if (form.description.length < 50)
+      newErrors.description = "Description must be at least 50 chars";
+    else if (form.description.length > 200)
+      newErrors.description = "Description must be less than 200 chars";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
@@ -126,20 +199,25 @@ export default function SellBikeForm({ productId }) {
       return;
     }
 
+    if (!validateForm()) {
+      toast.error("Please fix the validation errors");
+      return;
+    }
+
     try {
       setIsLoading(true);
 
       const payload = {
         ...form,
-        prize: Number(form.prize),
+        price: Number(form.price),
         sellerId,
       };
 
-      if (isEditMode && productId) {
+      if (isEditMode && bikeIdToUse) {
         // UPDATE MODE
-        await updateBike(productId, payload);
+        await updateBike(bikeIdToUse, payload);
         toast.success("Bike updated successfully!");
-        navigate("/dashboard");
+        navigate("/dashboard", { state: { tab: "BIKES" } });
       } else {
         // CREATE MODE
         const data = await addBikeService(payload);
@@ -161,29 +239,7 @@ export default function SellBikeForm({ productId }) {
     }
   };
 
-  const handleImageUpload = async () => {
-    if (!images.length) {
-      setUploadMsg("Please select images first.");
-      return;
-    }
 
-    try {
-      setIsUploading(true);
-
-      const formData = new FormData();
-      images.forEach((img) => formData.append("files", img)); // <-- matches backend
-      formData.append("bikeId", bikeId);
-
-      await uploadBikeImageService(formData);
-
-      setUploadMsg("Images uploaded successfully!");
-      setImages([]);
-    } catch (err) {
-      setUploadMsg("Upload failed.");
-    } finally {
-      setIsUploading(false);
-    }
-  };
 
   if (loading) {
     return (
@@ -200,34 +256,15 @@ export default function SellBikeForm({ productId }) {
       </h1>
       {/* IMAGE UPLOAD SCREEN */}
       {bikeId && !isEditMode ? (
-        <div className="p-4 border rounded">
-          <h2 className="text-lg font-semibold mb-2">
-            Upload Images for Bike ID: {bikeId}
-          </h2>
-
-          <input
-            type="file"
-            multiple
-            accept="image/*"
-            onChange={(e) => setImages([...e.target.files])}
-            className="border p-2 rounded"
-          />
-
-          <button
-            onClick={handleImageUpload}
-            disabled={isUploading}
-            className="ml-3 px-5 py-2 bg-indigo-600 text-white rounded-md"
-          >
-            {isUploading ? "Uploading…" : "Upload Images"}
-          </button>
-
-          {uploadMsg && (
-            <p className="mt-2 text-green-600 text-sm">{uploadMsg}</p>
-          )}
-        </div>
+        <ImageUploader
+          idValue={bikeId}
+          idKey="bikeId"
+          uploadService={uploadBikeImageService}
+          onSuccess={() => toast.success("Images uploaded successfully!")}
+        />
       ) : (
         /* BIKE FORM */
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           <SellerInfoBanner
             sellerId={sellerId}
             loading={sellerLoading}
@@ -236,73 +273,107 @@ export default function SellBikeForm({ productId }) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
-              label="Prize (₹)"
-              type="number"
-              required
-              value={form.prize}
-              onChange={(e) => handleChange("prize", e.target.value)}
-            />
-            <Input
               label="Brand"
-              required
               value={form.brand}
               onChange={(e) => handleChange("brand", e.target.value)}
+              error={errors.brand}
             />
             <Input
               label="Model"
-              required
               value={form.model}
               onChange={(e) => handleChange("model", e.target.value)}
+              error={errors.model}
             />
             <Input
               label="Variant"
-              required
               value={form.variant}
               onChange={(e) => handleChange("variant", e.target.value)}
+              error={errors.variant}
             />
             <Input
               label="Manufacture Year"
               type="number"
-              required
               value={form.manufactureYear}
               onChange={(e) => handleChange("manufactureYear", e.target.value)}
+              error={errors.manufactureYear}
             />
             <Input
               label="Engine CC"
               type="number"
-              required
               value={form.engineCC}
               onChange={(e) => handleChange("engineCC", e.target.value)}
+              error={errors.engineCC}
             />
             <Input
               label="Kilometers Driven"
               type="number"
-              required
               value={form.kilometersDriven}
               onChange={(e) => handleChange("kilometersDriven", e.target.value)}
+              error={errors.kilometersDriven}
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
-              label="Fuel Type"
-              value={form.fuelType}
-              onChange={(e) => handleChange("fuelType", e.target.value)}
-              placeholder="e.g. PETROL, DIESEL"
-            />
-            <Input
-              label="Color"
-              required
-              value={form.color}
-              onChange={(e) => handleChange("color", e.target.value)}
-            />
+            <div>
+              <label className="block mb-1 text-sm font-medium">Fuel Type</label>
+              <select
+                value={form.fuelType}
+                onChange={(e) => handleChange("fuelType", e.target.value)}
+                className={`w-full border p-2 rounded-md text-sm h-10 ${errors.fuelType ? "border-red-500" : "border-gray-300"
+                  }`}
+              >
+                <option value="">Select Fuel Type</option>
+                {["PETROL", "ELECTRIC", "CNG", "HYBRID"].map((f) => (
+                  <option key={f} value={f}>
+                    {f}
+                  </option>
+                ))}
+              </select>
+              {errors.fuelType && (
+                <p className="text-red-500 text-xs mt-1">{errors.fuelType}</p>
+              )}
+            </div>
+            <div>
+              <label className="block mb-1 text-sm font-medium">Color</label>
+              <select
+                value={form.color}
+                onChange={(e) => handleChange("color", e.target.value)}
+                className={`w-full border p-2 rounded-md text-sm h-10 ${errors.color ? "border-red-500" : "border-gray-300"
+                  }`}
+              >
+                <option value="">Select Color</option>
+                {[
+                  "Black",
+                  "White",
+                  "Red",
+                  "Blue",
+                  "Silver",
+                  "Grey",
+                  "Matt Black",
+                  "Orange",
+                  "Yellow",
+                  "Green",
+                  "Purple",
+                  "Brown",
+                  "Gold",
+                  "Other",
+                ].map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+              {errors.color && (
+                <p className="text-red-500 text-xs mt-1">{errors.color}</p>
+              )}
+            </div>
             <Input
               label="Registration Number"
-              required
               value={form.registrationNumber}
               onChange={(e) =>
                 handleChange("registrationNumber", e.target.value)
               }
+              error={errors.registrationNumber}
             />
             <Input
               label="Status"
@@ -310,18 +381,27 @@ export default function SellBikeForm({ productId }) {
               onChange={(e) => handleChange("status", e.target.value)}
               placeholder="e.g. ACTIVE"
             />
+            <Input
+              label="Price (₹)"
+              type="number"
+              value={form.price}
+              onChange={(e) => handleChange("price", e.target.value)}
+              error={errors.price}
+            />
           </div>
-
           <div>
             <label className="block mb-1 font-medium text-sm">
               Description
             </label>
             <textarea
-              required
               value={form.description}
               onChange={(e) => handleChange("description", e.target.value)}
-              className="w-full border rounded-md p-2 text-sm h-24"
+              className={`w-full border rounded-md p-2 text-sm h-24 ${errors.description ? "border-red-500" : "border-gray-300"
+                }`}
             />
+            {errors.description && (
+              <p className="text-red-500 text-xs mt-1">{errors.description}</p>
+            )}
           </div>
 
           <button
@@ -334,8 +414,8 @@ export default function SellBikeForm({ productId }) {
                 ? "Updating…"
                 : "Submitting…"
               : isEditMode
-              ? "Update Bike"
-              : "Add Bike"}
+                ? "Update Bike"
+                : "Add Bike"}
           </button>
 
           {message && <p className="text-green-600 text-sm">{message}</p>}
@@ -362,15 +442,17 @@ function SellerInfoBanner({ sellerId, loading, error }) {
   );
 }
 
-function Input({ label, type = "text", ...props }) {
+function Input({ label, type = "text", error, ...props }) {
   return (
     <div>
       <label className="block mb-1 text-sm font-medium">{label}</label>
       <input
         type={type}
         {...props}
-        className="w-full border p-2 rounded-md text-sm"
+        className={`w-full border p-2 rounded-md text-sm ${error ? "border-red-500" : "border-gray-300"
+          }`}
       />
+      {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
     </div>
   );
 }

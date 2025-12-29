@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 
 // Shared Component
 import DashboardStats from "../components/Dashboard/DashboardStats";
+import BikeTable from "../components/Bike/Seller/BikeTable";
 
 // SERVICES
 import {
@@ -26,9 +27,12 @@ const STATUS_FILTERS = ["ACTIVE", "PENDING", "SOLD"];
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
   const sellerId = Number(localStorage.getItem("sellerId"));
 
-  const [activeCategory, setActiveCategory] = useState("LAPTOPS");
+  const [activeCategory, setActiveCategory] = useState(
+    location.state?.tab || "LAPTOPS"
+  );
 
   const [laptops, setLaptops] = useState([]);
   const [bikes, setBikes] = useState([]);
@@ -232,10 +236,10 @@ export default function Dashboard() {
           activeCategory === "LAPTOPS"
             ? laptops
             : activeCategory === "BIKES"
-            ? bikes
-            : activeCategory === "CARS"
-            ? cars
-            : mobiles
+              ? bikes
+              : activeCategory === "CARS"
+                ? cars
+                : mobiles
         }
       />
 
@@ -244,12 +248,14 @@ export default function Dashboard() {
         {["LAPTOPS", "BIKES", "CARS", "MOBILES"].map((cat) => (
           <button
             key={cat}
-            onClick={() => setActiveCategory(cat)}
-            className={`px-5 py-2 rounded-md font-semibold ${
-              activeCategory === cat
+            onClick={() => {
+              setActiveCategory(cat);
+              navigate(".", { replace: true, state: { tab: cat } });
+            }}
+            className={`px-5 py-2 rounded-md font-semibold ${activeCategory === cat
                 ? "bg-indigo-600 text-white"
                 : "bg-gray-200 text-gray-800"
-            }`}
+              }`}
           >
             {cat}
           </button>
@@ -380,52 +386,7 @@ function LaptopTable({ items, onEdit, onDelete }) {
   );
 }
 
-// ----------------------------------------------------------------------
-// BIKE TABLE
-// ----------------------------------------------------------------------
 
-function BikeTable({ items, onEdit, onDelete }) {
-  return (
-    <CategoryWrapper title="Bike Listings">
-      {items.length === 0 ? (
-        <p>No bikes found</p>
-      ) : (
-        <Table>
-          <thead>
-            <tr>
-              <Th>Brand</Th>
-              <Th>Model</Th>
-              <Th>Variant</Th>
-              <Th>Price</Th>
-              <Th>Status</Th>
-              <Th>Actions</Th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {items.map((b) => (
-              <tr key={b.bike_id}>
-                <Td>{b.brand}</Td>
-                <Td>{b.model}</Td>
-                <Td>{b.variant}</Td>
-                <Td>{b.prize}</Td>
-                <Td>{b.status}</Td>
-                <Td>
-                  <ActionBtn onClick={() => onEdit(b)} color="blue">
-                    Edit
-                  </ActionBtn>
-                  <ActionBtn onClick={() => onDelete(b)} color="red">
-                    Delete
-                  </ActionBtn>
-                </Td>
-              </tr>
-            ))}
-          </tbody>
-        </Table>
-      )}
-    </CategoryWrapper>
-  );
-}
 
 // ----------------------------------------------------------------------
 // CAR TABLE
