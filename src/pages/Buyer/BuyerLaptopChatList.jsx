@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getLaptopBookingByBuyer } from "../../store/services/laptopBookingServices";
+import { getLaptopBookingsByBuyer } from "../../store/services/laptopBookingServices";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 
@@ -14,7 +14,7 @@ export default function BuyerLaptopChatList() {
     }
 
     try {
-      const result = await getLaptopBookingByBuyer(buyerId);
+      const result = await getLaptopBookingsByBuyer(buyerId);
 
       const list = Array.isArray(result) ? result : result ? [result] : [];
 

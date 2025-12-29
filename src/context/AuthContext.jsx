@@ -174,7 +174,6 @@ const parseRoles = (rawRoles) => {
     if (typeof parsed === "object")
       return Object.values(parsed).filter(Boolean);
   } catch {
-    // CSV fallback
     if (typeof rawRoles === "string" && rawRoles.length) {
       return rawRoles
         .split(",")
@@ -203,7 +202,7 @@ export function AuthProvider({ children }) {
   );
 
   /* ============================================================
-     REFRESH AUTH STATE (called on login/logout/refresh)
+     REFRESH AUTH STATE
   ============================================================ */
   const refreshAuthState = useCallback(() => {
     const token = localStorage.getItem("token");
@@ -221,7 +220,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   /* ============================================================
-     RUN ONCE WHEN APP LOADS
+     INIT
   ============================================================ */
   useEffect(() => {
     refreshAuthState();
@@ -229,7 +228,7 @@ export function AuthProvider({ children }) {
   }, [refreshAuthState]);
 
   /* ============================================================
-     LISTEN FOR AUTH CHANGES (multi-tab sync + custom events)
+     LISTEN FOR AUTH CHANGES
   ============================================================ */
   useEffect(() => {
     const handleStorage = (event) => {
@@ -257,29 +256,29 @@ export function AuthProvider({ children }) {
   }, []);
 
   /* ============================================================
-     LOGOUT HANDLER (Called by Navbar → signOut() )
+     LOGOUT HANDLER
   ============================================================ */
   const signOut = useCallback(async () => {
-    // Remove tokens + role + IDs
     localStorage.removeItem("token");
     localStorage.removeItem("roles");
     localStorage.removeItem("sellerId");
     localStorage.removeItem("buyerUserId");
     localStorage.removeItem("userId");
 
-    // Update context state → UI re-renders
+    // 🧹 Important cleanup for laptop seller view
+    localStorage.removeItem("lastBuyerId");
+
     setIsSignedIn(false);
     setRoles([]);
     setUserId(null);
     setBuyerUserId(null);
     setSellerId(null);
 
-    // Broadcast auth change globally
     window.dispatchEvent(new Event("auth-state-changed"));
   }, []);
 
   /* ============================================================
-     CONTEXT VALUE PASSED TO APP
+     CONTEXT VALUE
   ============================================================ */
   const value = useMemo(
     () => ({
@@ -289,8 +288,6 @@ export function AuthProvider({ children }) {
       userId,
       buyerUserId,
       sellerId,
-
-      // exported actions
       signOut,
       setAuthenticating,
       refreshAuthState,
@@ -314,12 +311,12 @@ export function AuthProvider({ children }) {
 }
 
 /* ============================================================
-   HOOK TO USE CONTEXT
+   HOOK
 ============================================================ */
 export const useAuth = () => useContext(AuthContext);
 
 /* ============================================================
-   EXTERNAL BROADCAST FUNCTION
+   EXTERNAL BROADCAST
 ============================================================ */
 export const broadcastAuthChange = () => {
   window.dispatchEvent(new Event("auth-state-changed"));

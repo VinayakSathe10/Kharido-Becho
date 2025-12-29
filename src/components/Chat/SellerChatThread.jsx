@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { MdArrowBack } from "react-icons/md";
 import ChatModal from "./ChatModal";
 
-const SellerChatThreadScreen = () => {
+const SellerChatThread = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -11,6 +11,7 @@ const SellerChatThreadScreen = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      {/* HEADER */}
       <div className="bg-white border-b border-border px-4 py-3 flex items-center relative z-50">
         <button
           onClick={() => navigate("/seller/chat")}
@@ -19,10 +20,11 @@ const SellerChatThreadScreen = () => {
         >
           <MdArrowBack className="text-2xl text-text-primary" />
         </button>
+
         <h1 className="text-xl font-bold text-text-primary">Chat</h1>
       </div>
 
-      {/* Full-screen modal for seller chat bound to this booking */}
+      {/* CHAT MODAL */}
       <ChatModal
         isOpen
         onClose={() => navigate("/seller/chat")}
@@ -33,5 +35,4 @@ const SellerChatThreadScreen = () => {
   );
 };
 
-export default SellerChatThreadScreen;
-
+export default SellerChatThread;

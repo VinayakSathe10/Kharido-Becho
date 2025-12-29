@@ -1,18 +1,23 @@
 import apiClient from "./apiClient";
 
 // 1. Create a new bike booking (buyer sends request to seller)
-export const createBikeBooking = async (bikeId, buyerId, message) => {
+export const createBikeBooking = async (
+  bikeId,
+  buyerId,
+  userId,
+  message
+) => {
   const payload = {
     bikeId,
     buyerId,
+    userId,
     message,
   };
 
-  // Backend expects a JSON body; avoid duplicating data in query params.
   const res = await apiClient.post("/bikes/bookings/post", payload);
-
   return res.data;
 };
+
 
 // 2. Chat APIs
 // 2a. Get chat history for a booking
@@ -47,6 +52,41 @@ export const updateBikeBookingStatus = async (bookingId, status) => {
     { params: { bookingId, status } }
   );
   return res.data;
+};
+
+// 9. Get all bookings for a buyer
+export const getBookingsForBuyer = async (buyerId) => {
+  try {
+    const res = await apiClient.get(
+      `/bikes/bookings/buyer/${buyerId}`
+    );
+
+    return Array.isArray(res.data) ? res.data : [];
+  } catch (err) {
+    // ✅ 404 = no bookings (normal case)
+    if (err?.response?.status === 404) {
+      return [];
+    }
+
+    // ❌ real error
+    throw err;
+  }
+};
+
+
+export const getBikeBookingsForSeller = async (sellerId) => {
+  try {
+    const res = await apiClient.get(
+      `/bikes/bookings/get-seller/${sellerId}`
+    );
+
+    return Array.isArray(res.data) ? res.data : [];
+  } catch (err) {
+    if (err?.response?.status === 404) {
+      return [];
+    }
+    throw err;
+  }
 };
 
 // 4. Explicit reject endpoint

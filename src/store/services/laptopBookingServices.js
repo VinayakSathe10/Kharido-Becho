@@ -1,172 +1,83 @@
-// // src/store/services/laptopBookingServices.js
-// import axios from "axios";
+import apiClient from "./apiClient";
 
-// const BASE_URL = "http://localhost:8087/api/laptopBookings";
+/* ----------------------- HELPERS ----------------------- */
 
-// /* ======================================================
-//    1. CREATE LAPTOP BOOKING (POST)
-//    ====================================================== */
-// export const createLaptopBooking = async (payload) => {
-//   try {
-//     const response = await axios.post(`${BASE_URL}/create`, payload);
-//     return response.data;
-//   } catch (error) {
-//     console.error("Error creating laptop booking:", error);
-//     throw error;
-//   }
-// };
+const extractList = (res) => res?.data?.data || res?.data || [];
 
-// /* ======================================================
-//    2. MARK LAPTOP BOOKING AS COMPLETED (POST)
-//    URL: /{bookingId}/complete
-//    ====================================================== */
-// export const completeLaptopBooking = async (bookingId) => {
-//   try {
-//     const response = await axios.post(`${BASE_URL}/${bookingId}/complete`);
-//     return response.data;
-//   } catch (error) {
-//     console.error("Error completing laptop booking:", error);
-//     throw error;
-//   }
-// };
+const extractData = (res) => res?.data?.data || res?.data;
 
-// /* ======================================================
-//    3. UPDATE LAPTOP BOOKING STATUS (PATCH)
-//    URL: /{bookingId}/status?status=ACCEPTED
-//    ====================================================== */
-// export const updateLaptopBookingStatus = async (bookingId, status) => {
-//   try {
-//     const response = await axios.patch(
-//       `${BASE_URL}/${bookingId}/status?status=${status}`
-//     );
-//     return response.data;
-//   } catch (error) {
-//     console.error("Error updating booking status:", error);
-//     throw error;
-//   }
-// };
+/* ------------------ CREATE REQUEST ------------------ */
 
-// /* ======================================================
-//    4. GET LAPTOP BOOKING BY LAPTOP ID (GET)
-//    URL: /{laptopBookingId}
-//    ====================================================== */
-// export const getLaptopBookingById = async (laptopBookingId) => {
-//   try {
-//     const response = await axios.get(`${BASE_URL}/${laptopBookingId}`);
-//     return response.data;
-//   } catch (error) {
-//     console.error("Error fetching laptop booking:", error);
-//     throw error;
-//   }
-// };
-
-// /* ======================================================
-//    5. GET ALL BOOKINGS OF BUYER BY BUYER ID (GET)
-//    URL: /buyer/{buyerId}
-//    ====================================================== */
-// export const getLaptopBookingByBuyer = async (buyerId) => {
-//   try {
-//     const response = await axios.get(`${BASE_URL}/buyer/${buyerId}`);
-//     return response.data;
-//   } catch (error) {
-//     console.error("Error fetching buyer laptop bookings:", error);
-//     throw error;
-//   }
-// };
-// src/store/services/laptopBookingServices.js
-import axios from "axios";
-
-const BASE_URL = "http://localhost:8087/api/laptopBookings";
-
-/* ======================================================
-   1. CREATE LAPTOP BOOKING (POST)
-   ====================================================== */
+// POST /api/laptopBookings/create
 export const createLaptopBooking = async (payload) => {
-  try {
-    const response = await axios.post(`${BASE_URL}/create`, payload);
-    return response.data;
-  } catch (error) {
-    console.error("Error creating laptop booking:", error);
-    throw error;
-  }
+  const res = await apiClient.post("/api/laptopBookings/create", payload);
+  return extractData(res);
 };
 
-/* ======================================================
-   2. MARK LAPTOP BOOKING AS COMPLETED (POST)
-   URL: /{bookingId}/complete
-   ====================================================== */
-export const completeLaptopBooking = async (bookingId) => {
-  try {
-    const response = await axios.post(`${BASE_URL}/${bookingId}/complete`);
-    return response.data;
-  } catch (error) {
-    console.error("Error completing laptop booking:", error);
-    throw error;
-  }
+/* ------------------ FETCH REQUESTS ------------------ */
+
+// GET /api/laptopBookings/{laptopId}
+export const getLaptopBookingsByLaptop = async (laptopId) => {
+  const res = await apiClient.get(`/api/laptopBookings/${laptopId}`);
+  return extractList(res);
 };
 
-/* ======================================================
-   3. UPDATE LAPTOP BOOKING STATUS (PATCH)
-   URL: /{bookingId}/status?status=ACCEPTED
-   ====================================================== */
+// GET /api/laptopBookings/buyer/{buyerId}
+export const getLaptopBookingsByBuyer = async (buyerId) => {
+  const res = await apiClient.get(`/api/laptopBookings/buyer/${buyerId}`);
+  return extractList(res);
+};
+
+// GET /api/laptopBookings/seller/{sellerId}
+export const getLaptopBookingsBySeller = async (sellerId) => {
+  const res = await apiClient.get(`/api/laptopBookings/seller/${sellerId}`);
+  return extractList(res);
+};
+
+// GET /api/laptopBookings/laptop-bookings/{bookingId}
+export const getLaptopBookingById = async (bookingId) => {
+  const res = await apiClient.get(
+    `/api/laptopBookings/laptop-bookings/${bookingId}`
+  );
+
+  const data = res.data;
+
+  // 🔥 Normalize here so all components get correct object
+  if (Array.isArray(data)) {
+    return data[0] || null;
+  }
+
+  return data;
+};
+
+/* ------------------ UPDATE STATUS ------------------ */
+
+// PATCH /api/laptopBookings/{laptopBookingId}/status?status=ACCEPTED
 export const updateLaptopBookingStatus = async (bookingId, status) => {
-  try {
-    const response = await axios.patch(
-      `${BASE_URL}/${bookingId}/status?status=${status}`
-    );
-    return response.data;
-  } catch (error) {
-    console.error("Error updating booking status:", error);
-    throw error;
-  }
+  const res = await apiClient.patch(
+    `/api/laptopBookings/${bookingId}/status?status=${status}`
+  );
+  return extractData(res);
 };
 
-/* ======================================================
-   4. GET LAPTOP BOOKING BY BOOKING ID (GET)
-   URL: /{laptopBookingId}
-   ====================================================== */
-export const getLaptopBookingById = async (laptopBookingId) => {
-  try {
-    const response = await axios.get(`${BASE_URL}/${laptopBookingId}`);
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching laptop booking:", error);
-    throw error;
-  }
+/* ------------------ CHAT MESSAGE ------------------ */
+
+// POST /api/laptopBookings/{id}/message?senderUserId=1&message=Hello
+export const sendLaptopMessage = async (bookingId, senderUserId, message) => {
+  const res = await apiClient.post(
+    `/api/laptopBookings/${bookingId}/message`,
+    null,
+    {
+      params: { senderUserId, message },
+    }
+  );
+  return extractData(res);
 };
 
-/* ======================================================
-   5. GET ALL BOOKINGS OF BUYER BY BUYER ID (GET)
-   URL: /buyer/{buyerId}
-   ====================================================== */
-export const getLaptopBookingByBuyer = async (buyerId) => {
-  try {
-    const response = await axios.get(`${BASE_URL}/buyer/${buyerId}`);
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching buyer laptop bookings:", error);
-    throw error;
-  }
-};
+/* ------------------ COMPLETE BOOKING ------------------ */
 
-/* ======================================================
-   6. SEND MESSAGE IN LAPTOP BOOKING CHAT (POST)
-   URL: /{bookingId}/message?senderUserId=..&message=..
-   ====================================================== */
-export const sendLaptopBookingMessage = async (
-  bookingId,
-  senderUserId,
-  message
-) => {
-  try {
-    const response = await axios.post(
-      `${BASE_URL}/${bookingId}/message?senderUserId=${senderUserId}&message=${encodeURIComponent(
-        message
-      )}`
-    );
-    return response.data;
-  } catch (error) {
-    console.error("Error sending booking message:", error);
-    throw error;
-  }
+// POST /api/laptopBookings/{id}/complete
+export const completeLaptopBooking = async (bookingId) => {
+  const res = await apiClient.post(`/api/laptopBookings/${bookingId}/complete`);
+  return extractData(res);
 };

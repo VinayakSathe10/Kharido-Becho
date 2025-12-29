@@ -11,6 +11,7 @@ const BuyerChatThreadScreen = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      {/* HEADER */}
       <div className="bg-white border-b border-border px-4 py-3 flex items-center relative z-50">
         <button
           onClick={() => navigate("/buyer/chat")}
@@ -19,15 +20,17 @@ const BuyerChatThreadScreen = () => {
         >
           <MdArrowBack className="text-2xl text-text-primary" />
         </button>
+
         <h1 className="text-xl font-bold text-text-primary">Chat</h1>
       </div>
 
-      {/* Full-screen modal for buyer chat bound to this booking */}
+      {/* CHAT */}
       <ChatModal
         isOpen
         onClose={() => navigate("/buyer/chat")}
         bookingId={bookingId}
         senderType="BUYER"
+        chatType="CAR"
       />
     </div>
   );
