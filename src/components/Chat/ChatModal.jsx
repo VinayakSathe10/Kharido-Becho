@@ -4,7 +4,7 @@ import { MdClose } from "react-icons/md";
 // Hooks
 import useChat from "../../pages/useChat"; // BIKE
 import useCarChat from "../../pages/useCarChat"; // CAR
-// import { sendBikeBookingMessage } from "../../store/services/bikeBookingServices";
+
 
 const ChatModal = ({
   isOpen,
@@ -106,3 +106,5 @@ const ChatModal = ({
 };
 
 export default ChatModal;
+
+

@@ -46,8 +46,8 @@ import Profile from "./components/Profile";
 // Laptop chat
 import LaptopChat from "./pages/LaptopChat";
 import BuyerLaptopChatList from "./pages/Buyer/BuyerLaptopChatList";
-import SellerLaptopChatList from "./pages/Seller/SellerLaptopChatList";
-import SellerLaptopChatThread from "./pages/Seller/SellerLaptopChatThread";
+// import SellerLaptopChatList from "./pages/Seller/SellerLaptopChatList";
+// import SellerLaptopChatThread from "./pages/Seller/SellerLaptopChatThread";
 import BikeDetail from "./components/Bike/buyer/BikeDeatails";
 
 function App() {
@@ -291,7 +291,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-
+{/* 
           <Route
             path="/seller/chat/laptops"
             element={
@@ -299,16 +299,16 @@ function App() {
                 <SellerLaptopChatList />
               </ProtectedRoute>
             }
-          />
+          /> */}
 
-          <Route
+          {/* <Route
             path="/seller/chat/laptop/:bookingId"
             element={
               <ProtectedRoute requiredRole="SELLER">
                 <SellerLaptopChatThread />
               </ProtectedRoute>
             }
-          />
+          /> */}
 
           <Route
             path="/seller/requests"
