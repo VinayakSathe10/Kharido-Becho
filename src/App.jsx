@@ -50,6 +50,8 @@ import BuyerLaptopChatList from "./pages/Buyer/BuyerLaptopChatList";
 // import SellerLaptopChatThread from "./pages/Seller/SellerLaptopChatThread";
 import BikeDetail from "./components/Bike/buyer/BikeDeatails";
 
+import ScrollToTop from "./components/Layout/ScrollToTop";
+
 function App() {
   const location = useLocation();
   const isAuthPage = ["/login", "/register", "/forget-password"].includes(
@@ -58,6 +60,7 @@ function App() {
 
   return (
     <AuthProvider>
+      <ScrollToTop />
       {!isAuthPage && <Navbar />}
 
       <div className="min-h-screen pb-16 md:pb-0">
@@ -291,7 +294,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-{/* 
+          {/* 
           <Route
             path="/seller/chat/laptops"
             element={

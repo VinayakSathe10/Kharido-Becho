@@ -3,13 +3,15 @@ import { toast } from "react-toastify";
 import SellerChatThread from "./SellerChatThread";
 import { getPendingBikeBookings } from "../../store/services/bikeBookingServices";
 
+import ChatListItem from "./ChatListItem";
+
 const SellerChatList = () => {
   const sellerId = Number(localStorage.getItem("sellerId"));
 
   const [chats, setChats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedChat, setSelectedChat] = useState(null);
-
+  console.log(selectedChat, "selectedChat");
   useEffect(() => {
     const loadPending = async () => {
       try {
@@ -37,11 +39,13 @@ const SellerChatList = () => {
     loadPending();
   }, [sellerId]);
 
+  console.log(selectedChat, "selectedChat");
   // Inline thread rendering
   if (selectedChat) {
     return (
       <SellerChatThread
         bookingId={selectedChat.bookingId}
+        bookingStatus={selectedChat.status}
         chatType="BIKE" // or whatever tab you are on
         chatTitle={selectedChat.title}
         chatSubtitle={selectedChat.buyerName}
@@ -53,7 +57,7 @@ const SellerChatList = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="bg-white border-b px-4 py-3">
-        <h1 className="text-xl font-bold">Pending Bike Requests</h1>
+        <h1 className="text-xl font-bold">PENDING BIKE REQUESTS</h1>
       </div>
 
       <div className="p-4">
@@ -65,16 +69,14 @@ const SellerChatList = () => {
           </div>
         ) : (
           <div className="space-y-3">
-            {(chats || []).map((chat) => (   // 👈 this line defines `chat`
-              <div
+            {(chats || []).map((chat) => (
+              <ChatListItem
                 key={chat.bookingId}
+                title={chat.title}
+                subtitle={`Buyer: ${chat.buyerName}`}
+                status={chat.status}
                 onClick={() => setSelectedChat(chat)}
-                className="bg-white border rounded-lg p-4 cursor-pointer hover:bg-gray-50"
-              >
-                <h2 className="font-semibold text-gray-900">{chat.title}</h2>
-                <p className="text-sm text-gray-600 mt-1">Buyer: {chat.buyerName}</p>
-                <p className="text-xs text-gray-500 mt-1">Status: {chat.status}</p>
-              </div>
+              />
             ))}
           </div>
         )}

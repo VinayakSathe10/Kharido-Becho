@@ -72,6 +72,15 @@ export const getCarsBySeller = async (sellerId, page = 0, size = 20) => {
   return response.data?.content || [];
 };
 
+// GET CARS BY STATUS
+export const getCarsByStatus = async (sellerId, status, page = 0, size = 50) => {
+  // Attempting to use the same pattern as getAllCars but with status
+  const response = await apiClient.get(
+    `/api/v1/cars/getAllCars?page=${page}&size=${size}&sellerId=${sellerId}&status=${status}`
+  );
+  return response.data?.content || [];
+};
+
 // DELETE CAR (soft delete)
 export const deleteCar = async (id) => {
   const response = await apiClient.delete(`/api/v1/cars/delete/${id}`);

@@ -47,7 +47,7 @@ const ChatModal = ({
 
 
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40">
       <div className="bg-white w-full max-w-md rounded-lg shadow-xl flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b">

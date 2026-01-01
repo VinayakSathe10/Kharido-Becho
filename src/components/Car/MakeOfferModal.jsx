@@ -243,8 +243,8 @@ export default function MakeOfferModal({
     } catch (err) {
       toast.error(
         err?.response?.data?.message ||
-          err?.response?.data?.errorMessage ||
-          "Failed to send message"
+        err?.response?.data?.errorMessage ||
+        "Failed to send message"
       );
     } finally {
       setLoading(false);

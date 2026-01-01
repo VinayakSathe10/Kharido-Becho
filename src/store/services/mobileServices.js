@@ -129,6 +129,14 @@ export const getMobilesBySeller = async (sellerId) => {
   return res.data?.content || [];
 };
 
+export const getMobilesByStatus = async (sellerId, status) => {
+  const res = await apiClient.get(
+    `/api/v1/mobiles/getAllMobiles?sellerId=${sellerId}&status=${status}&page=0&size=100`
+  );
+
+  return res.data?.content || [];
+};
+
 /* -----------------------------------------
    DELETE MOBILE
 ------------------------------------------ */

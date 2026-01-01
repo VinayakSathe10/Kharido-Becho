@@ -9,6 +9,7 @@ const SellerChatThread = ({
   chatTitle: propChatTitle,
   chatSubtitle: propCbSubtitle,
   onBack,
+  bookingStatus,
 }) => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -52,6 +53,7 @@ const SellerChatThread = ({
         bookingId={bookingId}
         sellerId={Number(localStorage.getItem("sellerId"))}
         chatType={chatType}
+        bookingStatus={bookingStatus}
         buyerId={location.state?.buyerId} // optional: if you want buyer context
       />
     </div>

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
 import { getBikeBookingsForSeller } from "../../store/services/bikeBookingServices";
+import { bookingStatuses, statusStyles } from "../../constants/bookingConstants";
 import SellerChatModal from "../Chat/SellerChatModal";
 
 const SellerChatList = () => {
@@ -23,9 +24,8 @@ const SellerChatList = () => {
         const formatted = data.map((b) => ({
           bookingId: b.bookingId ?? b.id,
           title: `${b.bike?.brand || ""} ${b.bike?.model || ""}`.trim(),
-          buyerName: `${b.buyer?.user?.firstName || ""} ${
-            b.buyer?.user?.lastName || ""
-          }`.trim(),
+          buyerName: `${b.buyer?.user?.firstName || ""} ${b.buyer?.user?.lastName || ""
+            }`.trim(),
           status: b.status || b.bookingStatus || "PENDING",
         }));
 
@@ -42,8 +42,8 @@ const SellerChatList = () => {
     else setLoading(false);
   }, [sellerId]);
 
-  const openChat = (bookingId) => {
-    setSelectedBooking(bookingId);
+  const openChat = (booking) => {
+    setSelectedBooking(booking);
     setIsModalOpen(true);
   };
 
@@ -51,11 +51,10 @@ const SellerChatList = () => {
     setIsModalOpen(false);
     setSelectedBooking(null);
   };
-
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen ">
       <div className="bg-white border-b px-4 py-3">
-        <h1 className="text-xl font-bold">Pending Bike Requests</h1>
+        <h1 className="text-xl font-bold">PENDING BIKE REQUESTS</h1>
       </div>
 
       <div className="p-4">
@@ -70,16 +69,22 @@ const SellerChatList = () => {
             {chats.map((c) => (
               <div
                 key={c.bookingId}
-                onClick={() => openChat(c.bookingId)}
+                onClick={() => openChat(c)}
                 className="bg-white border rounded-lg p-4 cursor-pointer hover:bg-gray-50"
               >
                 <h2 className="font-semibold text-gray-900">{c.title}</h2>
                 <p className="text-sm text-gray-600 mt-1">
                   Buyer: {c.buyerName}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  Status: {c.status}
-                </p>
+                <div className="mt-2">
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-xs font-medium border ${statusStyles[c.status] ||
+                      "bg-gray-100 text-gray-600 border-gray-200"
+                      }`}
+                  >
+                    {bookingStatuses[c.status] || c.status || "Unknown"}
+                  </span>
+                </div>
               </div>
             ))}
           </div>
@@ -90,8 +95,9 @@ const SellerChatList = () => {
         <SellerChatModal
           isOpen={isModalOpen}
           onClose={closeChat}
-          bookingId={selectedBooking}
+          bookingId={selectedBooking.bookingId}
           chatType="BIKE"
+          bookingStatus={selectedBooking.status}
         />
       )}
     </div>

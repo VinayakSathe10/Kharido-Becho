@@ -427,7 +427,10 @@ export default function Navbar() {
           {/* REQUEST BUTTON - BUYERS ONLY */}
           {isBuyer && (
             <button
-              onClick={() => navigate("/buyer/chat")}
+              onClick={() => {
+                window.scrollTo(0, 0);
+                navigate("/buyer/chat");
+              }}
               className="bg-green-200 hover:bg-green-500 text-gray-900 font-semibold py-2 px-4 rounded-md text-sm"
             >
               Requests
@@ -483,7 +486,10 @@ export default function Navbar() {
           {/* REQUEST - MOBILE (Buyers only) */}
           {isBuyer && (
             <button
-              onClick={() => handleNavigate("/buyer/chat")}
+              onClick={() => {
+                window.scrollTo(0, 0);
+                handleNavigate("/buyer/chat");
+              }}
               className="bg-green-200 hover:bg-green-500 text-gray-900 font-semibold py-1.5 px-3 rounded-md text-xs"
             >
               Requests
@@ -532,35 +538,35 @@ export default function Navbar() {
             <>
               <button
                 onClick={() => handleNavigate("/buy/cars")}
-                className="hover:text-blue-600"
+                className="hover:text-blue-600 font-bold"
               >
-                Cars
+                CARS
               </button>
 
               <button
                 onClick={() => handleNavigate("/buy/bikes")}
-                className="hover:text-blue-600"
+                className="hover:text-blue-600 font-bold"
               >
-                Bikes
+                BIKES
               </button>
 
               <button
                 onClick={() => handleNavigate("/buy/mobiles")}
-                className="hover:text-blue-600"
+                className="hover:text-blue-600 font-bold"
               >
-                Mobiles
+                MOBILES
               </button>
 
               <button
                 onClick={() => handleNavigate("/buy/laptops")}
-                className="hover:text-blue-600"
+                className="hover:text-blue-600 font-bold"
               >
-                Laptops
+                LAPTOPS
               </button>
 
-           
 
-              
+
+
             </>
           )}
 
@@ -569,22 +575,22 @@ export default function Navbar() {
             <>
               <button
                 onClick={() => handleNavigate("/dashboard")}
-                className="hover:text-blue-600"
+                className="hover:text-blue-500 font-bold"
               >
-                Dashboard
+                DASHBOARD
               </button>
               <button
                 onClick={() => handleNavigate("/seller/requests")}
-                className="hover:text-blue-600"
+                className="hover:text-blue-500 font-bold"
               >
-                Requests
+                REQUEST
               </button>
-              <button
+              {/* <button
                 onClick={() => handleNavigate("/seller/chat")}
                 className="hover:text-blue-600"
               >
                 Chat
-              </button>
+              </button> */}
             </>
           )}
 

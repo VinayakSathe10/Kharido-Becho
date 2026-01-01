@@ -12,14 +12,23 @@ import {
   deleteLaptop,
 } from "../store/services/laptopServices";
 
-import { getBikesBySeller, deleteBike } from "../store/services/bikeServices";
-
-import { getCarsBySeller, deleteCar } from "../store/services/carServices";
-
 import {
+  getMobilesByStatus,
   getMobilesBySeller,
   deleteMobile,
 } from "../store/services/mobileServices";
+
+import {
+  getBikesByStatus,
+  getBikesBySeller,
+  deleteBike,
+  getSellerBikesRaw
+} from "../store/services/bikeServices";
+import {
+  getCarsByStatus,
+  getCarsBySeller,
+  deleteCar
+} from "../store/services/carServices";
 
 const STATUS_FILTERS = ["ACTIVE", "PENDING", "SOLD"];
 
@@ -75,8 +84,10 @@ export default function Dashboard() {
   const fetchBikes = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await getBikesBySeller(sellerId);
-      setBikes(Array.isArray(data) ? data : []);
+      // Robust fetch: Get all and let frontend categorize
+      // This avoids 400 errors from backend status endpoints
+      const data = await getSellerBikesRaw(sellerId);
+      setBikes(data);
     } catch {
       toast.error("Failed to load bikes");
     } finally {
@@ -88,8 +99,23 @@ export default function Dashboard() {
   const fetchCars = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await getCarsBySeller(sellerId);
-      setCars(Array.isArray(data) ? data : []);
+      const results = await Promise.allSettled(
+        STATUS_FILTERS.map((status) =>
+          getCarsByStatus(sellerId, status).then((data) => ({
+            status,
+            data: Array.isArray(data) ? data : [],
+          }))
+        )
+      );
+
+      const merged = results.flatMap((res, idx) => {
+        if (res.status !== "fulfilled") return [];
+        return res.value.data.map((item) => ({
+          ...item,
+          status: item.status || STATUS_FILTERS[idx],
+        }));
+      });
+      setCars(merged);
     } catch {
       toast.error("Failed to load cars");
     } finally {
@@ -101,8 +127,23 @@ export default function Dashboard() {
   const fetchMobiles = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await getMobilesBySeller(sellerId);
-      setMobiles(Array.isArray(data) ? data : []);
+      const results = await Promise.allSettled(
+        STATUS_FILTERS.map((status) =>
+          getMobilesByStatus(sellerId, status).then((data) => ({
+            status,
+            data: Array.isArray(data) ? data : [],
+          }))
+        )
+      );
+
+      const merged = results.flatMap((res, idx) => {
+        if (res.status !== "fulfilled") return [];
+        return res.value.data.map((item) => ({
+          ...item,
+          status: item.status || STATUS_FILTERS[idx],
+        }));
+      });
+      setMobiles(merged);
     } catch {
       toast.error("Failed to load mobiles");
     } finally {
@@ -253,8 +294,8 @@ export default function Dashboard() {
               navigate(".", { replace: true, state: { tab: cat } });
             }}
             className={`px-5 py-2 rounded-md font-semibold ${activeCategory === cat
-                ? "bg-indigo-600 text-white"
-                : "bg-gray-200 text-gray-800"
+              ? "bg-indigo-600 text-white"
+              : "bg-gray-200 text-gray-800"
               }`}
           >
             {cat}

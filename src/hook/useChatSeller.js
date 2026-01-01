@@ -1,8 +1,14 @@
 import { useState, useCallback, useEffect } from "react";
 import {
+    updateBikeStatus,
+} from "../store/services/bikeServices";
+import {
     getBikeBookingsForSeller,
     sendBikeBookingMessage,
     getBikeBookingById,
+    completeBikeBooking,
+    rejectBikeBooking,
+    updateBikeBookingStatus,
 } from "../store/services/bikeBookingServices";
 
 /**
@@ -46,12 +52,14 @@ const useChatSeller = (bookingId) => {
             // Extract conversation or messages from the booking object
             // Adjust based on actual API response structure (likely 'conversation' or 'messages')
             const msgs = bookingData?.conversation || bookingData?.messages || [];
+            console.log("Raw fetched messages:", msgs);
 
             // Map 'message' field to 'content' for UI consistency if needed
             const formatted = (msgs || []).map((m) => ({
                 ...m,
                 content: m.content || m.message || "",
             }));
+            console.log("Formatted messages:", formatted);
             setMessages(formatted);
         } catch (err) {
             console.error("Error fetching messages:", err);
@@ -80,10 +88,10 @@ const useChatSeller = (bookingId) => {
             setSending(true);
             try {
                 let payload = {};
-
-                if (typeof contentOrPayload === "string") {
+                const userId = localStorage.getItem("userId");
+                if (typeof contentOrPayload === "string" && userId) {
                     // Backend expects 'message' field
-                    payload = { message: contentOrPayload };
+                    payload = { userId, message: contentOrPayload };
                 } else {
                     // Assume caller knows what they are doing, but ensure 'message' exists if 'content' matches
                     payload = { ...contentOrPayload };
@@ -93,6 +101,22 @@ const useChatSeller = (bookingId) => {
                 }
 
                 const response = await sendBikeBookingMessage(bookingId, payload);
+
+                // Auto-update status to IN_NEGOTIATION if this is the first seller reply
+                const hasSellerReplied = messages.some(
+                    (m) => m.senderType === "SELLER" || m.senderType === "seller"
+                );
+
+                if (!hasSellerReplied) {
+                    try {
+                        console.log("First seller reply detected, updating status to IN_NEGOTIATION...");
+                        await updateBikeBookingStatus(bookingId, "IN_NEGOTIATION");
+                        // Ideally, we might want to refresh bookings to reflect status change in list
+                        // fetchBookings(); 
+                    } catch (statusErr) {
+                        console.error("Failed to auto-update status:", statusErr);
+                    }
+                }
 
                 // Refresh messages after sending
                 await fetchMessages();
@@ -109,6 +133,56 @@ const useChatSeller = (bookingId) => {
         [bookingId, fetchMessages]
     );
 
+    // Accept booking (Complete)
+    const acceptBooking = useCallback(async () => {
+        if (!bookingId) return;
+        setLoading(true);
+        try {
+            // 1. Mark booking as complete
+            const res = await completeBikeBooking(bookingId);
+
+            // 2. Mark bike as SOLD
+            // We need to find the bikeId. It should be in the booking details.
+            // Since we might not have the full booking object handy if we only used fetchMessages,
+            // let's try to find it in 'bookings' (if fetched) or fetch it again.
+            // For safety, let's fetch the latest booking details to get the bikeId.
+            const bookingDetails = await getBikeBookingById(bookingId);
+            const bikeId = bookingDetails?.bikeId; // Ensure this field exists in your API
+
+            if (bikeId) {
+                console.log(`Marking bike ${bikeId} as SOLD...`);
+                await updateBikeStatus(bikeId, "SOLD");
+            } else {
+                console.warn("Could not find bikeId to mark as SOLD");
+            }
+
+            // 3. Force refresh to update dashboard stats
+            window.location.reload();
+
+            return res;
+        } catch (err) {
+            console.error("Error accepting booking:", err);
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, [bookingId]);
+
+    // Reject booking
+    const rejectBooking = useCallback(async () => {
+        if (!bookingId) return;
+        setLoading(true);
+        try {
+            const res = await rejectBikeBooking(bookingId);
+            return res;
+        } catch (err) {
+            console.error("Error rejecting booking:", err);
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, [bookingId]);
+
     return {
         bookings,
         messages,
@@ -118,6 +192,8 @@ const useChatSeller = (bookingId) => {
         fetchBookings,
         fetchMessages,
         sendMessage,
+        acceptBooking,
+        rejectBooking,
     };
 };
 

@@ -41,6 +41,7 @@ function ActionBtn({ children, onClick, color }) {
 }
 
 export default function BikeTable({ items, onEdit, onDelete }) {
+    console.log(items && items.length, "ITEMS ====");
     return (
         <CategoryWrapper title="Bike Listings">
             {items.length === 0 ? (
@@ -59,7 +60,7 @@ export default function BikeTable({ items, onEdit, onDelete }) {
                     </thead>
 
                     <tbody>
-                        {items.map((b) => (
+                        {[...items].reverse().map((b) => (
                             <tr key={b.bike_id}>
                                 <Td>{b.brand}</Td>
                                 <Td>{b.model}</Td>

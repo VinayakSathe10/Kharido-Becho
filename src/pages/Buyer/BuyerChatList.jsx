@@ -5,6 +5,8 @@ import BuyerChatThread from "./BuyerChatThread";
 
 import { getBookingsForBuyer } from "../../store/services/bikeBookingServices";
 
+import ChatListItem from "../../components/Chat/ChatListItem";
+
 const BuyerChatList = () => {
   // State for inline master-detail view
   const [selectedChat, setSelectedChat] = useState(null);
@@ -54,15 +56,15 @@ const BuyerChatList = () => {
       try {
         setLoading(true);
         const data = await getBookingsForBuyer(buyerId);
-
+        console.log(data, "data =====");
         // 🔁 Normalize backend response
         const formatted = data.map((b) => ({
           bookingId: b.bookingId || b.id,
           title: `${b.bike?.brand || ""} ${b.bike?.model || ""}`,
-          sellerName: b.seller?.user?.name || "Seller",
+          sellerName: b?.bike?.seller?.user?.firstName || "Seller",
           status: b.status || "PENDING",
         }));
-
+        console.log(formatted, "formatted =====");
         setBikeChats(formatted);
       } catch (err) {
         toast.error("Failed to load bike chats");
@@ -130,25 +132,14 @@ const BuyerChatList = () => {
         ) : (
           <div className="space-y-3">
             {chats.map((chat) => (
-              <div
+              <ChatListItem
                 key={chat.bookingId}
+                title={chat.title}
+                subtitle={`Seller: ${chat.sellerName}`}
+                status={chat.status}
+                tag={activeTab}
                 onClick={() => setSelectedChat(chat)}
-                className="cursor-pointer bg-white border rounded-lg p-4 hover:shadow flex justify-between items-center"
-              >
-                <div>
-                  <p className="font-semibold">{chat.title}</p>
-                  <p className="text-sm text-gray-500">
-                    Seller: {chat.sellerName}
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    Status: {chat.status}
-                  </p>
-                </div>
-
-                <span className="text-xs font-bold px-3 py-1 rounded-full bg-gray-200 text-gray-700">
-                  {activeTab}
-                </span>
-              </div>
+              />
             ))}
           </div>
         )}
