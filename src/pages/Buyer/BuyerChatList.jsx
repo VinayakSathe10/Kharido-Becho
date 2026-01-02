@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import BuyerChatThread from "./BuyerChatThread";
 
 import { getBookingsForBuyer } from "../../store/services/bikeBookingServices";
+import { getMobileRequestsByBuyer } from "../../store/services/mobileRequestServices";
 
 import ChatListItem from "../../components/Chat/ChatListItem";
 
@@ -13,6 +14,7 @@ const BuyerChatList = () => {
 
   const [activeTab, setActiveTab] = useState("CAR");
   const [bikeChats, setBikeChats] = useState([]);
+  const [mobileChats, setMobileChats] = useState([]);
   const [loading, setLoading] = useState(false);
 
   // 🔹 Static dummy data (unchanged)
@@ -25,14 +27,7 @@ const BuyerChatList = () => {
         status: "PENDING",
       },
     ],
-    MOBILE: [
-      {
-        bookingId: 3,
-        title: "iPhone 13",
-        sellerName: "Suresh",
-        status: "PENDING",
-      },
-    ],
+    MOBILE: [],
     LAPTOP: [
       {
         bookingId: 4,
@@ -73,13 +68,47 @@ const BuyerChatList = () => {
       }
     };
 
+    const loadMobileChats = async () => {
+      const buyerId = Number(localStorage.getItem("buyerId"));
+
+      if (!buyerId) {
+        // toast.error("Buyer not logged in");
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const data = await getMobileRequestsByBuyer(buyerId);
+        console.log(data, "mobile data =====");
+
+        // 🔁 Normalize backend response
+        const formatted = data.map((m) => ({
+          bookingId: m.requestId || m.id,
+          title: `${m.mobile?.brand || ""} ${m.mobile?.model || ""}`,
+          sellerName: m?.mobile?.seller?.firstName || "Seller",
+          status: m.status || "PENDING",
+        }));
+        setMobileChats(formatted);
+      } catch (err) {
+        toast.error("Failed to load mobile chats");
+      } finally {
+        setLoading(false);
+      }
+    };
+
     if (activeTab === "BIKE") {
       loadBikeChats();
+    } else if (activeTab === "MOBILE") {
+      loadMobileChats();
     }
   }, [activeTab]);
 
   const chats =
-    activeTab === "BIKE" ? bikeChats : chatsByType[activeTab];
+    activeTab === "BIKE"
+      ? bikeChats
+      : activeTab === "MOBILE"
+        ? mobileChats
+        : chatsByType[activeTab];
 
   // Master-Detail View
   if (selectedChat) {

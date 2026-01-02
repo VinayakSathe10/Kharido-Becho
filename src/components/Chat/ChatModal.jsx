@@ -2,8 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { MdClose } from "react-icons/md";
 
 // Hooks
-import useChat from "../../pages/useChat"; // BIKE
-import useCarChat from "../../pages/useCarChat"; // CAR
+import useChat from "../../hook/useChat"; // BIKE
+import useCarChat from "../../hook/useCarChat"; // CAR
 
 
 const ChatModal = ({

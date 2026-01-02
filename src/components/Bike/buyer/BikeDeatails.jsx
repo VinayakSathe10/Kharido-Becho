@@ -169,10 +169,10 @@ export default function BikeDetails() {
       toast.error("Please make an offer first");
       return;
     }
-    
+
     setIsChatOpen(true); // open modal
   };
-  
+
   if (loading) return <div className="p-6">Loading...</div>;
   if (!bike) return <div className="p-6">Bike not found</div>;
 
@@ -274,12 +274,12 @@ export default function BikeDetails() {
               Chat With Seller
             </button>
             <ChatModal
-  isOpen={isChatOpen}
-  onClose={() => setIsChatOpen(false)}
-  bookingId={bookingId || localStorage.getItem("bikeBookingId")}
-  senderType="BUYER"
-  chatType="BIKE" // or "CAR" depending on context
-/>
+              isOpen={isChatOpen}
+              onClose={() => setIsChatOpen(false)}
+              bookingId={bookingId || localStorage.getItem("bikeBookingId")}
+              senderType="BUYER"
+              chatType="BIKE" // or "CAR" depending on context
+            />
           </div>
         </div>
       </div>

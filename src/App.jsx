@@ -20,6 +20,7 @@ import BuyProducts from "./pages/Buyer/BuyProducts";
 // import Services from "./pages/Services";
 import ProductDetail from "./pages/ProductDetail";
 import LaptopDetail from "./pages/LaptopDetail";
+import MobileDetail from "./components/Mobile/Buyer/MobileDetails";
 
 // Auth pages
 import Login from "./components/Auth/Login ";
@@ -151,6 +152,15 @@ function App() {
             element={
               <RoleBasedRoute public={true}>
                 <LaptopDetail />
+              </RoleBasedRoute>
+            }
+          />
+
+          <Route
+            path="/mobile/:id"
+            element={
+              <RoleBasedRoute public={true}>
+                <MobileDetail />
               </RoleBasedRoute>
             }
           />
