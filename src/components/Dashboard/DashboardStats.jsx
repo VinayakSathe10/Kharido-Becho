@@ -2,7 +2,10 @@ import React from "react";
 
 const STATUS_KEYS = ["ACTIVE", "PENDING", "SOLD"];
 
-const normalizeStatus = (status = "") => status.toString().toUpperCase();
+const normalizeStatus = (status) => {
+  if (!status) return "";
+  return status.toString().trim().toUpperCase();
+};
 
 export default function DashboardStats({ listings = [] }) {
   const counts = listings.reduce(

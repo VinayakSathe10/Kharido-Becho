@@ -42,10 +42,15 @@ export const deleteBikeImage = async (imageId) => {
  * Backend endpoint pattern already used for ACTIVE, we reuse it for other statuses.
  */
 export const getBikesByStatus = async (sellerId, status) => {
-  const res = await apiClient.get(
-    `/bikes/seller/${sellerId}/status/${status}/page/0/size/50`
-  );
-  return res.data?.content || [];
+  try {
+    const res = await apiClient.get(
+      `/bikes/seller/${sellerId}/status/${status}/page/0/size/50`
+    );
+    return res.data?.content || [];
+  } catch (err) {
+    console.warn(`Failed to fetch bikes with status ${status}:`, err);
+    return [];
+  }
 };
 
 /**
@@ -67,6 +72,11 @@ export const updateBike = async (bikeId, payload) => {
   return res.data;
 };
 
+// Update status specifically
+export const updateBikeStatus = async (bikeId, status) => {
+  return updateBike(bikeId, { status });
+};
+
 // Alternative: If your backend expects full object update (PUT instead of PATCH)
 export const updateBikeFull = async (bikeId, payload) => {
   const res = await apiClient.put(`/bikes/put/${bikeId}`, payload);
@@ -86,4 +96,13 @@ export const getAllBikes = async () => {
   return list.filter(
     (bike) => (bike.status || "").toString().toUpperCase() === "ACTIVE"
   );
+};
+
+// Fallback: Fetch ALL bikes and filter by seller client-side
+// This is robust against 400 errors on specific status endpoints
+export const getSellerBikesRaw = async (sellerId) => {
+  const res = await apiClient.get("/bikes/get");
+  const allBikes = Array.isArray(res.data) ? res.data : [];
+  // Filter by sellerId (ensure type match)
+  return allBikes.filter(b => Number(b.sellerId) === Number(sellerId));
 };

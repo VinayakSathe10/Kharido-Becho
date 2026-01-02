@@ -43,4 +43,11 @@ export const getMobileRequestsByBuyer = async (buyerId) => {
   return response.data;
 };
 
+export const getMobileRequestsBySeller = async (sellerId) => {
+  const response = await apiClient.get(
+    `/api/v1/mobile/requests/seller/${sellerId}`
+  );
+  return response.data;
+};
+
 

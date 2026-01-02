@@ -38,8 +38,8 @@ export default function SellProducts({ initialTab }) {
     tabs.find((tab) => tab.id === activeTab)?.component ?? tabs[0].component;
 
   return (
-    <div className="container mx-auto px-4 py-12">
-      <h2 className="text-3xl font-bold mb-6 text-center">Sell Your Product</h2>
+    <div className="container bg-cyan-400 mx-auto px-4 py-12">
+      <h2 className="text-3xl font-bold mb-6 text-center">SELL YOUR PRODUCT</h2>
 
       <div className="flex justify-center mb-8">
         <div className="inline-flex rounded-md shadow-sm overflow-hidden border">

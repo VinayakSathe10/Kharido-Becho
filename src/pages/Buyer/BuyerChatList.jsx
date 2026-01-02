@@ -4,6 +4,9 @@ import { toast } from "react-toastify";
 import BuyerChatThread from "./BuyerChatThread";
 
 import { getBookingsForBuyer } from "../../store/services/bikeBookingServices";
+import { getMobileRequestsByBuyer } from "../../store/services/mobileRequestServices";
+
+import ChatListItem from "../../components/Chat/ChatListItem";
 
 const BuyerChatList = () => {
   // State for inline master-detail view
@@ -11,6 +14,7 @@ const BuyerChatList = () => {
 
   const [activeTab, setActiveTab] = useState("CAR");
   const [bikeChats, setBikeChats] = useState([]);
+  const [mobileChats, setMobileChats] = useState([]);
   const [loading, setLoading] = useState(false);
 
   // 🔹 Static dummy data (unchanged)
@@ -23,14 +27,7 @@ const BuyerChatList = () => {
         status: "PENDING",
       },
     ],
-    MOBILE: [
-      {
-        bookingId: 3,
-        title: "iPhone 13",
-        sellerName: "Suresh",
-        status: "PENDING",
-      },
-    ],
+    MOBILE: [],
     LAPTOP: [
       {
         bookingId: 4,
@@ -54,15 +51,15 @@ const BuyerChatList = () => {
       try {
         setLoading(true);
         const data = await getBookingsForBuyer(buyerId);
-
+        console.log(data, "data =====");
         // 🔁 Normalize backend response
         const formatted = data.map((b) => ({
           bookingId: b.bookingId || b.id,
           title: `${b.bike?.brand || ""} ${b.bike?.model || ""}`,
-          sellerName: b.seller?.user?.name || "Seller",
+          sellerName: b?.bike?.seller?.user?.firstName || "Seller",
           status: b.status || "PENDING",
         }));
-
+        console.log(formatted, "formatted =====");
         setBikeChats(formatted);
       } catch (err) {
         toast.error("Failed to load bike chats");
@@ -71,13 +68,47 @@ const BuyerChatList = () => {
       }
     };
 
+    const loadMobileChats = async () => {
+      const buyerId = Number(localStorage.getItem("buyerId"));
+
+      if (!buyerId) {
+        // toast.error("Buyer not logged in");
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const data = await getMobileRequestsByBuyer(buyerId);
+        console.log(data, "mobile data =====");
+
+        // 🔁 Normalize backend response
+        const formatted = data.map((m) => ({
+          bookingId: m.requestId || m.id,
+          title: `${m.mobile?.brand || ""} ${m.mobile?.model || ""}`,
+          sellerName: m?.mobile?.seller?.firstName || "Seller",
+          status: m.status || "PENDING",
+        }));
+        setMobileChats(formatted);
+      } catch (err) {
+        toast.error("Failed to load mobile chats");
+      } finally {
+        setLoading(false);
+      }
+    };
+
     if (activeTab === "BIKE") {
       loadBikeChats();
+    } else if (activeTab === "MOBILE") {
+      loadMobileChats();
     }
   }, [activeTab]);
 
   const chats =
-    activeTab === "BIKE" ? bikeChats : chatsByType[activeTab];
+    activeTab === "BIKE"
+      ? bikeChats
+      : activeTab === "MOBILE"
+        ? mobileChats
+        : chatsByType[activeTab];
 
   // Master-Detail View
   if (selectedChat) {
@@ -130,25 +161,14 @@ const BuyerChatList = () => {
         ) : (
           <div className="space-y-3">
             {chats.map((chat) => (
-              <div
+              <ChatListItem
                 key={chat.bookingId}
+                title={chat.title}
+                subtitle={`Seller: ${chat.sellerName}`}
+                status={chat.status}
+                tag={activeTab}
                 onClick={() => setSelectedChat(chat)}
-                className="cursor-pointer bg-white border rounded-lg p-4 hover:shadow flex justify-between items-center"
-              >
-                <div>
-                  <p className="font-semibold">{chat.title}</p>
-                  <p className="text-sm text-gray-500">
-                    Seller: {chat.sellerName}
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    Status: {chat.status}
-                  </p>
-                </div>
-
-                <span className="text-xs font-bold px-3 py-1 rounded-full bg-gray-200 text-gray-700">
-                  {activeTab}
-                </span>
-              </div>
+              />
             ))}
           </div>
         )}

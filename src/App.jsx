@@ -20,6 +20,7 @@ import BuyProducts from "./pages/Buyer/BuyProducts";
 // import Services from "./pages/Services";
 import ProductDetail from "./pages/ProductDetail";
 import LaptopDetail from "./pages/LaptopDetail";
+import MobileDetail from "./components/Mobile/Buyer/MobileDetails";
 
 // Auth pages
 import Login from "./components/Auth/Login ";
@@ -46,9 +47,11 @@ import Profile from "./components/Profile";
 // Laptop chat
 import LaptopChat from "./pages/LaptopChat";
 import BuyerLaptopChatList from "./pages/Buyer/BuyerLaptopChatList";
-import SellerLaptopChatList from "./pages/Seller/SellerLaptopChatList";
-import SellerLaptopChatThread from "./pages/Seller/SellerLaptopChatThread";
+// import SellerLaptopChatList from "./pages/Seller/SellerLaptopChatList";
+// import SellerLaptopChatThread from "./pages/Seller/SellerLaptopChatThread";
 import BikeDetail from "./components/Bike/buyer/BikeDeatails";
+
+import ScrollToTop from "./components/Layout/ScrollToTop";
 
 function App() {
   const location = useLocation();
@@ -58,6 +61,7 @@ function App() {
 
   return (
     <AuthProvider>
+      <ScrollToTop />
       {!isAuthPage && <Navbar />}
 
       <div className="min-h-screen pb-16 md:pb-0">
@@ -148,6 +152,15 @@ function App() {
             element={
               <RoleBasedRoute public={true}>
                 <LaptopDetail />
+              </RoleBasedRoute>
+            }
+          />
+
+          <Route
+            path="/mobile/:id"
+            element={
+              <RoleBasedRoute public={true}>
+                <MobileDetail />
               </RoleBasedRoute>
             }
           />
@@ -291,7 +304,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-
+          {/* 
           <Route
             path="/seller/chat/laptops"
             element={
@@ -299,16 +312,16 @@ function App() {
                 <SellerLaptopChatList />
               </ProtectedRoute>
             }
-          />
+          /> */}
 
-          <Route
+          {/* <Route
             path="/seller/chat/laptop/:bookingId"
             element={
               <ProtectedRoute requiredRole="SELLER">
                 <SellerLaptopChatThread />
               </ProtectedRoute>
             }
-          />
+          /> */}
 
           <Route
             path="/seller/requests"

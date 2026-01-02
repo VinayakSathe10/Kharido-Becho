@@ -2,9 +2,9 @@ import React, { useEffect, useRef, useState } from "react";
 import { MdClose } from "react-icons/md";
 
 // Hooks
-import useChat from "../../pages/useChat"; // BIKE
-import useCarChat from "../../pages/useCarChat"; // CAR
-// import { sendBikeBookingMessage } from "../../store/services/bikeBookingServices";
+import useChat from "../../hook/useChat"; // BIKE
+import useCarChat from "../../hook/useCarChat"; // CAR
+
 
 const ChatModal = ({
   isOpen,
@@ -47,7 +47,7 @@ const ChatModal = ({
 
 
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40">
       <div className="bg-white w-full max-w-md rounded-lg shadow-xl flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b">
@@ -106,3 +106,5 @@ const ChatModal = ({
 };
 
 export default ChatModal;
+
+
