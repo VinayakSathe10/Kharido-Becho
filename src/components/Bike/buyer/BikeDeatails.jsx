@@ -197,10 +197,18 @@ export default function BikeDetails() {
 
   return (
     <div className="max-w-6xl mx-auto p-6">
-      {/* Breadcrumb */}
-      <div className="text-sm text-gray-500 mb-4">
-        <Link to="/">Home</Link> /{" "}
-        <Link to="/buy/bikes">Bikes</Link> / {bike.brand} {bike.model}
+      {/* Back Button & Breadcrumb */}
+      <div className="flex items-center gap-4 mb-4">
+        <button
+          onClick={() => navigate(-1)}
+          className="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded transition"
+        >
+          ← Back
+        </button>
+        <div className="text-sm text-gray-500">
+          <Link to="/">Home</Link> /{" "}
+          <Link to="/buy/bikes">Bikes</Link> / {bike.brand} {bike.model}
+        </div>
       </div>
 
       <div className="lg:flex lg:gap-8">
@@ -293,7 +301,7 @@ export default function BikeDetails() {
           <Detail icon={<FaTachometerAlt />} label="Driven" value={`${bike.kilometersDriven} km`} />
           <Detail icon={<FaGasPump />} label="Fuel Type" value={bike.fuelType} />
           <Detail icon={<FaPalette />} label="Color" value={bike.color} />
-          <Detail icon={<FaMapMarkerAlt />} label="Location" value={bike.location} />
+          <Detail icon={<FaMapMarkerAlt />} label="Location" value={bike.address || bike.city || bike.location || "N/A"} />
           <Detail icon={<FaMotorcycle />} label="Status" value={bike.status} />
         </div>
       </div>
