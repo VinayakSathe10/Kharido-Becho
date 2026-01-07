@@ -10,8 +10,10 @@ const extractList = (response) =>
 
 const extractData = (response) => response?.data?.data || response?.data;
 
-export const getAllLaptops = async () => {
-  const res = await apiClient.get("/api/laptops/getAll");
+export const getAllLaptops = async (page = 0, size = 100) => {
+  const res = await apiClient.get("/api/v1/laptops/getAllLaptops", {
+    params: { page, size },
+  });
   return extractList(res);
 };
 
